@@ -1,0 +1,12 @@
+{
+  "name": "messaging-app",
+  "version": "1.0.0",
+  "description": "Messaging App for The Odin Project",
+  "license": "ISC",
+  "author": "jonorl@gmail.com",
+  "type": "commonjs",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
