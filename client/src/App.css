@@ -1,4 +1,4 @@
- /* ICQLayout.css */
+ /* ICQLayout.css
  .icq-container {
   display: grid;
   grid-template-columns: 200px 1fr 200px;
@@ -61,4 +61,4 @@
  .status-area {
   grid-column: 3;
   background-color: #f0f0f0;
- }
+ } */
