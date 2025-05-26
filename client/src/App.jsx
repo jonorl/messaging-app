@@ -5,6 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('default', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+}
+
 export default function MessagingApp() {
   const [newMessage, setNewMessage] = useState("");
   const [messages, setMessages] = useState([]);
@@ -70,7 +80,7 @@ export default function MessagingApp() {
     }
 
     fetchData();
-  }, [token, user, ]);
+  }, [token, user,]);
 
   const sendMessage = async () => {
     if (newMessage.trim() === "") return;
@@ -232,8 +242,14 @@ export default function MessagingApp() {
                     >
                       <p className="text-sm font-semibold">{msg.sender}</p>
                       <p>{msg.text}</p>
+                      {msg.createdAt && (
+                        <p className="text-xs text-gray-300 mt-1 text-right">
+                          {formatDate(msg.createdAt)}
+                        </p>
+                      )}
                     </div>
                   ))}
+
                 </CardContent>
               </Card>
               <div className="flex items-center gap-2 mt-4">
