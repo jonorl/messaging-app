@@ -53,7 +53,7 @@ async function createUser(name, email, hashedPassword) {
       passwordHash: hashedPassword,
     },
   });
-  return newUser
+  return newUser;
 }
 
 async function getAllUsers() {
@@ -68,9 +68,47 @@ async function getAllUsers() {
 
 async function getMe(user) {
   const users = await prisma.user.findUnique({
-    where: {id:user.userId}
+    where: { id: user.userId },
   });
   return users;
+}
+
+async function userWithFavourites(userId) {
+  const favourites = await prisma.favourite.findMany({
+    where: { userId: userId },
+  });
+  return favourites;
+}
+
+async function toggleFavourite(userId, favouriteId) {
+  const existing = await prisma.favourite.findUnique({
+    where: {
+      userId_favouriteId: {
+        userId,
+        favouriteId,
+      },
+    },
+  });
+
+  if (existing) {
+    await prisma.favourite.delete({
+      where: {
+        userId_favouriteId: {
+          userId,
+          favouriteId,
+        },
+      },
+    });
+    return { removed: true };
+  } else {
+    await prisma.favourite.create({
+      data: {
+        userId,
+        favouriteId,
+      },
+    });
+    return { added: true };
+  }
 }
 
 module.exports = {
@@ -80,4 +118,6 @@ module.exports = {
   createUser,
   getAllUsers,
   getMe,
+  userWithFavourites,
+  toggleFavourite,
 };

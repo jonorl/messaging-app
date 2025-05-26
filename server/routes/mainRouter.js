@@ -41,17 +41,14 @@ mainRouter.get("/api/v1/messages/", authenticateToken, async (req, res) => {
   res.json({ messages });
 });
 
-mainRouter.post(
-  "/api/v1/messages/",
-   authenticateToken,  async (req, res) => {
-    const senderId = req.body.senderId;
-    const text = req.body.text;
-    const receiverId = req.body.receiverId;
-    const postedMessage = await db.postMessages(senderId, text, receiverId);
-    console.log("posted message: ", postedMessage);
-    res.json({ postedMessage });
-  }
-);
+mainRouter.post("/api/v1/messages/", authenticateToken, async (req, res) => {
+  const senderId = req.body.senderId;
+  const text = req.body.text;
+  const receiverId = req.body.receiverId;
+  const postedMessage = await db.postMessages(senderId, text, receiverId);
+  console.log("posted message: ", postedMessage);
+  res.json({ postedMessage });
+});
 
 mainRouter.post("/api/v1/signup/", validateUser, async (req, res) => {
   try {
@@ -93,9 +90,33 @@ mainRouter.get("/api/v1/users", async (req, res) => {
 
 mainRouter.get("/api/v1/me", authenticateToken, async (req, res) => {
   try {
-    console.log(req.user)
+    console.log(req.user);
     const user = await db.getMe(req.user);
     res.json({ user });
+  } catch (err) {
+    console.error("Failed to get user:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+mainRouter.post("/api/v1/favourite", authenticateToken, async (req, res) => {
+  try {
+    const favourite = await db.toggleFavourite(req.user.userId, req.body.favUser);
+    res.json({ favourite });
+  } catch (err) {
+    console.error("Failed to get user:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+mainRouter.get("/api/v1/favourite", authenticateToken, async (req, res) => {
+  try {
+    const favourite = await db.userWithFavourites(req.user.userId);
+    const favouriteIdsMap = favourite.reduce((acc, currentFavourite) => {
+    acc[currentFavourite.favouriteId] = true;
+    return acc;
+  }, {}); 
+    res.json({ favouriteIdsMap });
   } catch (err) {
     console.error("Failed to get user:", err);
     res.status(500).json({ message: "Server error" });

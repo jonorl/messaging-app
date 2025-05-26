@@ -57,6 +57,14 @@ export default function MessagingApp() {
         const messagesData = await messagesRes.json();
         setMessages(messagesData.messages);
 
+        // Fixed: Properly extract favouriteIdsMap from the response
+        const favouritesRes = await fetch("http://localhost:3000/api/v1/favourite", {
+          headers: { authorization: `Bearer ${token}` },
+        });
+        const favouritesData = await favouritesRes.json();
+        console.log("Favorites data:", favouritesData);
+        setFavourites(favouritesData.favouriteIdsMap || {});
+
         const contactMap = new Map();
         messagesData.messages.forEach((msg) => {
           const otherId = msg.senderId === user.id ? msg.receiverId : msg.senderId;
@@ -72,15 +80,15 @@ export default function MessagingApp() {
           headers: { authorization: `Bearer ${token}` },
         });
         const usersData = await usersRes.json();
-        console.log("usersData: ", usersData)
         setAllUsers(usersData.users);
+
       } catch (err) {
         console.error("Error fetching data:", err);
       }
     }
 
     fetchData();
-  }, [token, user,]);
+  }, [token, user]);
 
   const sendMessage = async () => {
     if (newMessage.trim() === "") return;
@@ -106,7 +114,6 @@ export default function MessagingApp() {
           senderId: user.id,
           text: newMessage,
           receiverId: selectedContactId,
-
         }),
       });
 
@@ -114,7 +121,6 @@ export default function MessagingApp() {
       console.log("Message sent to API:", result);
     } catch (error) {
       console.error("Failed to send message:", error);
-      // You could roll back the optimistic update here if needed
     }
   };
 
@@ -130,11 +136,37 @@ export default function MessagingApp() {
     navigate("/login");
   };
 
-  const toggleFavourite = (userId) => {
+  const toggleFavourite = async (userId) => {
+    // Optimistically update the UI
     setFavourites((prev) => ({
       ...prev,
       [userId]: !prev[userId],
     }));
+    
+    try {
+      const response = await fetch("http://localhost:3000/api/v1/favourite/", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          favUser: userId,
+        }),
+      });
+      const result = await response.json();
+      console.log("Favourite toggle result:", result);
+      
+      // If the server response is successful, keep the optimistic update
+      // If you want to be more robust, you could refetch the favorites here
+    } catch (error) {
+      console.error("Failed to toggle favourite:", error);
+      // Revert the optimistic update on error
+      setFavourites((prev) => ({
+        ...prev,
+        [userId]: !prev[userId],
+      }));
+    }
   };
 
   return (
@@ -190,18 +222,29 @@ export default function MessagingApp() {
             <div>
               <h2 className="text-lg font-semibold mb-2">Favourites</h2>
               <ul className="space-y-2">
-                {allUsers.filter((u) => favourites[u.id]).map((u) => (
-                  <li
-                    key={u.id}
-                    className="flex justify-between items-center cursor-pointer hover:bg-gray-700 p-2 rounded-lg"
-                    onClick={() => setSelectedContactId(u.id)}
-                  >
-                    <span>{u.name}</span>
-                    <button onClick={(e) => { e.stopPropagation(); toggleFavourite(u.id); }}>
-                      ❤️
-                    </button>
-                  </li>
-                ))}
+                {allUsers
+                  .filter((u) => favourites[u.id] === true)
+                  .map((u) => (
+                    <li
+                      key={u.id}
+                      className="flex justify-between items-center cursor-pointer hover:bg-gray-700 p-2 rounded-lg"
+                      onClick={() => setSelectedContactId(u.id)}
+                    >
+                      <span>{u.name}</span>
+                      <button 
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          toggleFavourite(u.id); 
+                        }}
+                        className="text-red-500 hover:text-red-400"
+                      >
+                        ❤️
+                      </button>
+                    </li>
+                  ))}
+                {allUsers.filter((u) => favourites[u.id] === true).length === 0 && (
+                  <li className="text-gray-400 text-sm italic p-2">No favourites yet</li>
+                )}
               </ul>
             </div>
           )}
@@ -211,18 +254,26 @@ export default function MessagingApp() {
             <div>
               <h2 className="text-lg font-semibold mb-2">All Users</h2>
               <ul className="space-y-2">
-                {allUsers.map((u) => (
-                  <li
-                    key={u.id}
-                    className="flex justify-between items-center cursor-pointer hover:bg-gray-700 p-2 rounded-lg"
-                    onClick={() => setSelectedContactId(u.id)}
-                  >
-                    <span>{u.name}</span>
-                    <button onClick={() => toggleFavourite(u.id)}>
-                      {favourites[u.id] ? "❤️" : "🤍"}
-                    </button>
-                  </li>
-                ))}
+                {allUsers
+                  .filter((u) => u.id !== user.id) // Don't show the current user
+                  .map((u) => (
+                    <li
+                      key={u.id}
+                      className="flex justify-between items-center cursor-pointer hover:bg-gray-700 p-2 rounded-lg"
+                      onClick={() => setSelectedContactId(u.id)}
+                    >
+                      <span>{u.name}</span>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavourite(u.id);
+                        }}
+                        className={favourites[u.id] ? "text-red-500 hover:text-red-400" : "text-gray-400 hover:text-red-300"}
+                      >
+                        {favourites[u.id] ? "❤️" : "🤍"}
+                      </button>
+                    </li>
+                  ))}
               </ul>
             </div>
           )}
@@ -249,7 +300,6 @@ export default function MessagingApp() {
                       )}
                     </div>
                   ))}
-
                 </CardContent>
               </Card>
               <div className="flex items-center gap-2 mt-4">
