@@ -38,7 +38,15 @@ async function postMessages(senderId, text, receiverId) {
   return message;
 }
 
+async function getUser(email) {
+  const user = await prisma.user.findUnique({
+    where: { email: email },
+  });
+  return user;
+}
+
 module.exports = {
   readMessages,
   postMessages,
+  getUser,
 };

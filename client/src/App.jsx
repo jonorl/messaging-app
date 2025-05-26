@@ -12,6 +12,7 @@ export default function MessagingApp() {
 
   // Hardcoding user for now
   const you = "5b8872a0-dae5-4a21-8a00-5861f8d446b5";
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     async function fetchMessages() {
@@ -19,6 +20,7 @@ export default function MessagingApp() {
         const response = await fetch("http://localhost:3000/api/v1/messages", {
           headers: {
             "Content-Type": "application/json",
+            "authorization": `bearer ${token}`
           },
         });
         const data = await response.json();
