@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -45,41 +46,20 @@ export default function MessagingApp() {
     fetchMessages();
   }, []);
 
-const sendMessage = async () => {
-  if (newMessage.trim() === "" || !selectedContactId) return;
-
-  const tempMessage = {
-    id: messages.length + 1,
-    senderId: you,
-    receiverId: selectedContactId,
-    sender: "You",
-    text: newMessage,
-  };
-
-  // Optimistically update UI
-  setMessages([...messages, tempMessage]);
-  setNewMessage("");
-
-  try {
-    const response = await fetch("http://localhost:3000/api/v1/messages/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+  const sendMessage = () => {
+    if (newMessage.trim() === "") return;
+    setMessages([
+      ...messages,
+      {
+        id: messages.length + 1,
         senderId: you,
-        text: newMessage,
         receiverId: selectedContactId,
-      }),
-    });
-
-    const result = await response.json();
-    console.log("Message sent to API:", result);
-  } catch (error) {
-    console.error("Failed to send message:", error);
-    // You could roll back the optimistic update here if needed
-  }
-};
+        sender: "You",
+        text: newMessage,
+      },
+    ]);
+    setNewMessage("");
+  };
 
   const filteredMessages = messages.filter(
     (msg) =>
@@ -88,21 +68,33 @@ const sendMessage = async () => {
   );
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
+    <div className="flex flex-col h-screen bg-gray-900 text-white">
       {/* Header */}
-      <header className="bg-white shadow-md p-4 text-xl font-bold">Messaging App</header>
+      <header className="bg-gray-800 shadow-md p-4 flex justify-between items-center">
+        <Link to="/" className="text-xl font-bold cursor-pointer hover:text-blue-400">
+          Messaging App
+        </Link>
+        <div className="space-x-2" >
+          <Button className="hover:bg-gray-700">Guest</Button>
+          <Button className="hover:bg-gray-700">Sign Up</Button>
+          <Button className="hover:bg-gray-700">Login</Button>
+          <Button className="hover:bg-gray-700">Customise profile</Button>
+        </div>
+      </header>
 
       {/* Main content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <aside className="w-64 bg-gray-200 p-4 overflow-y-auto border-r">
+        <aside className="w-64 bg-gray-800 p-4 overflow-y-auto border-r border-gray-700">
           <h2 className="text-lg font-semibold mb-4">Conversations</h2>
           <ul className="space-y-2">
             {contacts.map(([id, name]) => (
               <li
                 key={id}
                 className={`cursor-pointer p-2 rounded-lg ${
-                  id === selectedContactId ? "bg-blue-400 text-white" : "hover:bg-gray-300"
+                  id === selectedContactId
+                    ? "bg-blue-500 text-white"
+                    : "hover:bg-gray-700"
                 }`}
                 onClick={() => setSelectedContactId(id)}
               >
@@ -114,15 +106,15 @@ const sendMessage = async () => {
 
         {/* Chat area */}
         <main className="flex flex-col flex-1 p-4">
-          <Card className="flex-1 overflow-y-auto p-4 space-y-4 bg-white shadow-md rounded-2xl">
+          <Card className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-800 text-white shadow-md rounded-2xl">
             <CardContent className="space-y-4">
               {filteredMessages.map((msg) => (
                 <div
                   key={msg.id}
                   className={`max-w-xs px-4 py-2 rounded-lg shadow-md ${
                     msg.senderId === you
-                      ? "ml-auto bg-blue-500 text-white"
-                      : "mr-auto bg-gray-200 text-black"
+                      ? "ml-auto bg-blue-600 text-white"
+                      : "mr-auto bg-gray-700 text-white"
                   }`}
                 >
                   <p className="text-sm font-semibold">{msg.sender}</p>
@@ -134,20 +126,20 @@ const sendMessage = async () => {
           <div className="flex items-center gap-2 mt-4">
             <Input
               type="text"
-              className="flex-1"
+              className="flex-1 bg-gray-700 border-gray-600 text-white"
               placeholder="Type your message..."
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             />
-            <Button onClick={sendMessage}>Send</Button>
+            <Button className="hover:bg-gray-700" onClick={sendMessage}>Send</Button>
           </div>
         </main>
       </div>
 
       {/* Footer */}
-      <footer className="bg-white shadow-inner p-4 text-center text-sm text-gray-500">
-        Messaging App © 2025
+      <footer className="bg-gray-800 shadow-inner p-4 text-center text-sm text-gray-400">
+        Messaging App © 2025 
       </footer>
     </div>
   );
