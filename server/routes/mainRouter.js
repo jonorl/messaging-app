@@ -35,17 +35,15 @@ mainRouter.post("/api/v1/login", async (req, res) => {
   }
 });
 
-mainRouter.get("/api/v1/messages/", async (req, res) => {
-  const messages = await db.readMessages(
-    "5b8872a0-dae5-4a21-8a00-5861f8d446b5"
-  );
+mainRouter.get("/api/v1/messages/", authenticateToken, async (req, res) => {
+  const messages = await db.readMessages(req.user.userId);
   console.log("messages: ", messages);
   res.json({ messages });
 });
 
 mainRouter.post(
   "/api/v1/messages/",
-  /* authenticateToken, */ async (req, res) => {
+   authenticateToken,  async (req, res) => {
     const senderId = req.body.senderId;
     const text = req.body.text;
     const receiverId = req.body.receiverId;
@@ -81,6 +79,27 @@ mainRouter.post("/api/v1/signup/", validateUser, async (req, res) => {
 
 mainRouter.post("/api/v1/logout", (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
+});
+
+mainRouter.get("/api/v1/users", async (req, res) => {
+  try {
+    const users = await db.getAllUsers();
+    res.json({ users });
+  } catch (err) {
+    console.error("Failed to get users:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+mainRouter.get("/api/v1/me", authenticateToken, async (req, res) => {
+  try {
+    console.log(req.user)
+    const user = await db.getMe(req.user);
+    res.json({ user });
+  } catch (err) {
+    console.error("Failed to get user:", err);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 module.exports = mainRouter;

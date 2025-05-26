@@ -56,9 +56,28 @@ async function createUser(name, email, hashedPassword) {
   return newUser
 }
 
+async function getAllUsers() {
+  const users = await prisma.user.findMany({
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+  return users;
+}
+
+async function getMe(user) {
+  const users = await prisma.user.findUnique({
+    where: {id:user.userId}
+  });
+  return users;
+}
+
 module.exports = {
   readMessages,
   postMessages,
   getUser,
   createUser,
+  getAllUsers,
+  getMe,
 };
