@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ export default function MessagingApp() {
   const [selectedContactId, setSelectedContactId] = useState(null);
 
   // Hardcoding user for now
+  const navigate = useNavigate();
   const you = "5b8872a0-dae5-4a21-8a00-5861f8d446b5";
   const token = localStorage.getItem("token");
 
@@ -46,7 +48,7 @@ export default function MessagingApp() {
     }
 
     fetchMessages();
-  }, []);
+  }, [token]);
 
   const sendMessage = () => {
     if (newMessage.trim() === "") return;
@@ -69,6 +71,12 @@ export default function MessagingApp() {
       (msg.receiverId === you && msg.senderId === selectedContactId)
   );
 
+  const logout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
+
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-white">
       {/* Header */}
@@ -80,7 +88,7 @@ export default function MessagingApp() {
           <Link to="/guest"><Button className="hover:bg-gray-700">Guest login</Button></Link>
           <Link to="/signup"><Button className="hover:bg-gray-700">Sign Up</Button></Link>
           <Link to="/login"><Button className="hover:bg-gray-700">Login</Button></Link>
-          <Link to="/logout"><Button className="hover:bg-gray-700">Logout</Button></Link>
+          <Button onClick={logout} className="hover:bg-gray-700">Logout</Button>
           <Link to="/customise"><Button className="hover:bg-gray-700">Customise Profile</Button></Link>
         </div>
       </header>
@@ -95,8 +103,8 @@ export default function MessagingApp() {
               <li
                 key={id}
                 className={`cursor-pointer p-2 rounded-lg ${id === selectedContactId
-                    ? "bg-blue-500 text-white"
-                    : "hover:bg-gray-700"
+                  ? "bg-blue-500 text-white"
+                  : "hover:bg-gray-700"
                   }`}
                 onClick={() => setSelectedContactId(id)}
               >
@@ -114,8 +122,8 @@ export default function MessagingApp() {
                 <div
                   key={msg.id}
                   className={`max-w-xs px-4 py-2 rounded-lg shadow-md ${msg.senderId === you
-                      ? "ml-auto bg-blue-600 text-white"
-                      : "mr-auto bg-gray-700 text-white"
+                    ? "ml-auto bg-blue-600 text-white"
+                    : "mr-auto bg-gray-700 text-white"
                     }`}
                 >
                   <p className="text-sm font-semibold">{msg.sender}</p>

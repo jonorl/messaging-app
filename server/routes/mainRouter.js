@@ -79,4 +79,8 @@ mainRouter.post("/api/v1/signup/", validateUser, async (req, res) => {
   }
 });
 
+mainRouter.post("/api/v1/logout", (req, res) => {
+  res.status(200).json({ message: "Logged out successfully" });
+});
+
 module.exports = mainRouter;
