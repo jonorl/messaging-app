@@ -40,10 +40,11 @@ export default function LoginPage() {
                     Messaging App
                 </Link>
                 <div className="space-x-2" >
-                    <Button className="hover:bg-gray-700">Guest</Button>
-                    <Button className="hover:bg-gray-700">Sign Up</Button>
-                    <Button className="hover:bg-gray-700">Login</Button>
-                    <Button className="hover:bg-gray-700">Customise profile</Button>
+                    <Link to="/guest"><Button className="hover:bg-gray-700">Guest login</Button></Link>
+                    <Link to="/signup"><Button className="hover:bg-gray-700">Sign Up</Button></Link>
+                    <Link to="/login"><Button className="hover:bg-gray-700">Login</Button></Link>
+                    <Link to="/logout"><Button className="hover:bg-gray-700">Logout</Button></Link>
+                    <Link to="/customise"><Button className="hover:bg-gray-700">Customise Profile</Button></Link>
                 </div>
             </header>
             <main className="flex flex-col flex-1 p-4 overflow-hidden justify-center items-center">

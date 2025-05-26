@@ -12,7 +12,7 @@ model User {
   email            String    @unique
   name             String
   passwordHash     String
-  profilePicture   String
+  profilePicture   String?
   createdAt        DateTime  @default(now())
   sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")

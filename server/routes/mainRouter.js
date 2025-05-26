@@ -3,7 +3,8 @@ const mainRouter = Router();
 const db = require("../db/queries");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const authenticateToken = require("../controllers/authentication");
+const { authenticateToken } = require("../controllers/authentication");
+const { validateUser } = require("../controllers/formValidation");
 
 mainRouter.post("/api/v1/login", async (req, res) => {
   const { email, password } = req.body;
@@ -42,13 +43,40 @@ mainRouter.get("/api/v1/messages/", async (req, res) => {
   res.json({ messages });
 });
 
-mainRouter.post("/api/v1/messages/", /* authenticateToken, */ async (req, res) => {
-  const senderId = req.body.senderId;
-  const text = req.body.text;
-  const receiverId = req.body.receiverId;
-  const postedMessage = await db.postMessages(senderId, text, receiverId);
-  console.log("posted message: ", postedMessage);
-  res.json({ postedMessage });
+mainRouter.post(
+  "/api/v1/messages/",
+  /* authenticateToken, */ async (req, res) => {
+    const senderId = req.body.senderId;
+    const text = req.body.text;
+    const receiverId = req.body.receiverId;
+    const postedMessage = await db.postMessages(senderId, text, receiverId);
+    console.log("posted message: ", postedMessage);
+    res.json({ postedMessage });
+  }
+);
+
+mainRouter.post("/api/v1/signup/", validateUser, async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    const existingUser = await db.getUser(email);
+    if (existingUser) {
+      return res.status(409).json({ message: "Email already in use" });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await db.createUser(name, email, hashedPassword);
+
+    const token = jwt.sign(
+      { userId: newUser.id, email: newUser.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.status(201).json({ token });
+  } catch (err) {
+    console.error("Signup error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 module.exports = mainRouter;

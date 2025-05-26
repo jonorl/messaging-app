@@ -77,10 +77,11 @@ export default function MessagingApp() {
           Messaging App
         </Link>
         <div className="space-x-2" >
-          <Button className="hover:bg-gray-700">Guest</Button>
-          <Button className="hover:bg-gray-700">Sign Up</Button>
-          <Button className="hover:bg-gray-700">Login</Button>
-          <Button className="hover:bg-gray-700">Customise profile</Button>
+          <Link to="/guest"><Button className="hover:bg-gray-700">Guest login</Button></Link>
+          <Link to="/signup"><Button className="hover:bg-gray-700">Sign Up</Button></Link>
+          <Link to="/login"><Button className="hover:bg-gray-700">Login</Button></Link>
+          <Link to="/logout"><Button className="hover:bg-gray-700">Logout</Button></Link>
+          <Link to="/customise"><Button className="hover:bg-gray-700">Customise Profile</Button></Link>
         </div>
       </header>
 
@@ -93,11 +94,10 @@ export default function MessagingApp() {
             {contacts.map(([id, name]) => (
               <li
                 key={id}
-                className={`cursor-pointer p-2 rounded-lg ${
-                  id === selectedContactId
+                className={`cursor-pointer p-2 rounded-lg ${id === selectedContactId
                     ? "bg-blue-500 text-white"
                     : "hover:bg-gray-700"
-                }`}
+                  }`}
                 onClick={() => setSelectedContactId(id)}
               >
                 {name}
@@ -113,11 +113,10 @@ export default function MessagingApp() {
               {filteredMessages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`max-w-xs px-4 py-2 rounded-lg shadow-md ${
-                    msg.senderId === you
+                  className={`max-w-xs px-4 py-2 rounded-lg shadow-md ${msg.senderId === you
                       ? "ml-auto bg-blue-600 text-white"
                       : "mr-auto bg-gray-700 text-white"
-                  }`}
+                    }`}
                 >
                   <p className="text-sm font-semibold">{msg.sender}</p>
                   <p>{msg.text}</p>
@@ -141,7 +140,7 @@ export default function MessagingApp() {
 
       {/* Footer */}
       <footer className="bg-gray-800 shadow-inner p-4 text-center text-sm text-gray-400">
-        Messaging App © 2025 
+        Messaging App © 2025
       </footer>
     </div>
   );
