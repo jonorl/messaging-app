@@ -7,6 +7,9 @@ const { authenticateToken } = require("../controllers/authentication");
 const { validateUser } = require("../controllers/formValidation");
 const multer = require("../controllers/multer");
 
+//in-memory storage of online users
+const onlineUsers = new Map();
+
 mainRouter.post("/api/v1/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -134,5 +137,26 @@ mainRouter.put("/api/v1/users", authenticateToken, multer.single("avatar"), asyn
     res.status(500).json({ message: "Server error" });
   }
 });
+
+mainRouter.post("/api/v1/heartbeat", authenticateToken, (req, res) => {
+  const userId = req.user.userId;
+  onlineUsers.set(userId, Date.now());
+  console.log("onlineUsers", onlineUsers);
+  res.sendStatus(200);
+});
+
+mainRouter.get("/api/v1/online", authenticateToken, (req, res) => {
+  res.json({ online: Array.from(onlineUsers.keys()) });
+});
+
+// Clean up old entries (run every minute)
+setInterval(() => {
+  const now = Date.now();
+  for (const [userId, lastSeen] of onlineUsers.entries()) {
+    if (now - lastSeen > 60000) { // 60 seconds timeout
+      onlineUsers.delete(userId);
+    }
+  }
+}, 60000);
 
 module.exports = mainRouter;

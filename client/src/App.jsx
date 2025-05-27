@@ -30,6 +30,7 @@ export default function MessagingApp() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [progress, setProgress] = useState(13)
+  const [onlineUsers, setOnlineUsers] = useState([]);
   const messagesRef = useRef(messages);
 
   const navigate = useNavigate();
@@ -40,6 +41,43 @@ export default function MessagingApp() {
     return () => clearTimeout(timer)
   }, [])
 
+  // Tell backend I'm online
+  useEffect(() => {
+    if (!token || !user) return;
+
+    const fetchOnlineUsers = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/v1/online", {
+          headers: { authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        setOnlineUsers(data.online || []);
+      } catch (err) {
+        console.error("Failed to fetch online users:", err);
+      }
+    };
+
+    fetchOnlineUsers();
+    const interval = setInterval(fetchOnlineUsers, 10000); // every 10s
+    return () => clearInterval(interval);
+  }, [token, user]);
+
+  useEffect(() => {
+    if (!token || !user) return;
+
+    // Show online users
+
+    const intervalId = setInterval(() => {
+      fetch("http://localhost:3000/api/v1/heartbeat", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      });
+    }, 30000); // Every 30 seconds
+
+    return () => clearInterval(intervalId);
+  }, [token, user]);
 
   // useEffect hook for getting user data
   useEffect(() => {
@@ -267,7 +305,7 @@ export default function MessagingApp() {
                   src={user.profilePicture ? `${host}${user.profilePicture}` : undefined}
                   alt={user.name}
                 />
-                <AvatarFallback className="text-xs">{user.name?.[0]}</AvatarFallback>
+                <AvatarFallback className="text-gray-500">{user.name?.[0]}</AvatarFallback>
               </Avatar>
               <h2 className="flex text-lg font-semibold self-center">Hello, {user.name}</h2>
               <Link to="/customise"><Button className="hover:bg-gray-700">Customise Profile</Button></Link>
@@ -312,7 +350,7 @@ export default function MessagingApp() {
           {/* Favourites */}
           {user && (
             <div>
-              <h2 className="text-lg font-semibold mb-2">Favourites</h2>
+              <h2 className="text-lg font-semibold mb-2">Favourites (see if online)</h2>
               <ul className="space-y-2">
                 {allUsers
                   .filter((u) => favourites[u.id] === true)
@@ -329,15 +367,24 @@ export default function MessagingApp() {
                         </Avatar>
                         <span>{u.name}</span>
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavourite(u.id);
-                        }}
-                        className="text-red-500 hover:text-red-400"
-                      >
-                        ❤️
-                      </button>
+                      <div className="flex justify-end items-center">
+                        {console.log(onlineUsers)}
+                        {onlineUsers.includes(u.id) && (
+                          <span
+                            className={`w-2.5 h-2.5 rounded-full mr-2 ${onlineUsers.includes(u.id) ? "bg-green-500" : "bg-red-500"
+                              }`}
+                          />
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleFavourite(u.id);
+                          }}
+                          className="text-red-500 hover:text-red-400"
+                        >
+                          ❤️
+                        </button>
+                      </div>
                     </li>
                   ))}
                 {allUsers.filter((u) => favourites[u.id] === true).length === 0 && (
@@ -460,13 +507,6 @@ export default function MessagingApp() {
 
               {/* Message Input */}
               <div className="flex items-center gap-3 mt-4 p-3 bg-gray-800 rounded-xl shadow-md">
-                <Avatar className="h-8 w-8 flex-shrink-0">
-                  <AvatarImage
-                    src={user.profilePicture ? `${host}${user.profilePicture}` : undefined}
-                    alt={user.name}
-                  />
-                  <AvatarFallback className="text-gray-500">{user.name?.[0]}</AvatarFallback>
-                </Avatar>
                 <Input
                   type="text"
                   className="flex-1 bg-gray-700 border-gray-600 text-white rounded-full px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
