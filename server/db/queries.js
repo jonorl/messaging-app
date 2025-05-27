@@ -61,6 +61,7 @@ async function getAllUsers() {
     select: {
       id: true,
       name: true,
+      profilePicture: true
     },
   });
   return users;

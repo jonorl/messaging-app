@@ -9,11 +9,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 export default function Customise() {
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
-
     const [user, setUser] = useState(null);
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [avatarFile, setAvatarFile] = useState(null);
+    const host = import.meta.env.VITE_LOCALHOST
 
     useEffect(() => {
         async function fetchUser() {
@@ -58,6 +58,12 @@ export default function Customise() {
         }
     };
 
+    const logout = () => {
+        localStorage.removeItem("token");
+        setUser(null);
+        navigate("/login");
+    };
+
     return (
         <div className="flex flex-col h-screen bg-gray-900 text-white">
             {/* Header */}
@@ -65,12 +71,21 @@ export default function Customise() {
                 <Link to="/" className="text-xl font-bold cursor-pointer hover:text-blue-400">
                     Messaging App
                 </Link>
-                <div className="space-x-2" >
-                    <Link to="/guest"><Button className="hover:bg-gray-700">Guest login</Button></Link>
-                    <Link to="/signup"><Button className="hover:bg-gray-700">Sign Up</Button></Link>
-                    <Link to="/login"><Button className="hover:bg-gray-700">Login</Button></Link>
-                    <Link to="/logout"><Button className="hover:bg-gray-700">Logout</Button></Link>
-                    <Link to="/customise"><Button className="hover:bg-gray-700">Customise Profile</Button></Link>
+                <div className="space-x-2 flex">
+                    {!user && (
+                        <>
+                            <Link to="/guest"><Button className="hover:bg-gray-700">Guest login</Button></Link>
+                            <Link to="/signup"><Button className="hover:bg-gray-700">Sign Up</Button></Link>
+                            <Link to="/login"><Button className="hover:bg-gray-700">Login</Button></Link>
+                        </>
+                    )}
+                    {user && (
+                        <>
+                            <h2 className="flex text-lg font-semibold self-center">Hello, {user.name}</h2>
+                            <Button onClick={logout} className="hover:bg-gray-700">Logout</Button>
+                            <Link to="/customise"><Button className="hover:bg-gray-700">Customise Profile</Button></Link>
+                        </>
+                    )}
                 </div>
             </header>
             <main className="flex flex-col flex-1 p-4 overflow-hidden justify-center items-center">
@@ -79,7 +94,7 @@ export default function Customise() {
                         <h2 className="text-white text-2xl font-bold text-center">Customise Profile</h2>
                         <div className="flex justify-center">
                             <Avatar className="h-24 w-24">
-                                <AvatarImage src={`http://localhost:3000${avatarFile}`} alt={user?.name} />
+                                <AvatarImage src={`${host}${avatarFile}`} alt={user?.name} />{console.log(`${host}${avatarFile}`)}
                                 {<AvatarFallback>{user?.name?.[0] || "?"}</AvatarFallback>}
                             </Avatar>
                         </div>
