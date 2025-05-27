@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { authenticateToken } = require("../controllers/authentication");
 const { validateUser } = require("../controllers/formValidation");
+const multer = require("../controllers/multer");
 
 mainRouter.post("/api/v1/login", async (req, res) => {
   const { email, password } = req.body;
@@ -117,6 +118,17 @@ mainRouter.get("/api/v1/favourite", authenticateToken, async (req, res) => {
     return acc;
   }, {}); 
     res.json({ favouriteIdsMap });
+  } catch (err) {
+    console.error("Failed to get user:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+mainRouter.put("/api/v1/users", authenticateToken, multer.single("avatar"), async (req, res) => {
+  try {
+    const avatar = req.file ? `/uploads/${req.file.filename}` : undefined;
+    const user = await db.updateUser(req.user.userId, req.body.name, req.body.email, avatar); 
+    res.json({ user: { ...user, avatarUrl: user.profilePicture } });
   } catch (err) {
     console.error("Failed to get user:", err);
     res.status(500).json({ message: "Server error" });

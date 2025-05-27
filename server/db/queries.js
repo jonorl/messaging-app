@@ -111,6 +111,20 @@ async function toggleFavourite(userId, favouriteId) {
   }
 }
 
+async function updateUser(id, name, email, profileURL) {
+  const user = await prisma.user.update({
+    where: {
+      id: id,
+    },
+    data: {
+      name: name,
+      email: email,
+      profilePicture: profileURL,
+    },
+  });
+  return user;
+}
+
 module.exports = {
   readMessages,
   postMessages,
@@ -120,4 +134,5 @@ module.exports = {
   getMe,
   userWithFavourites,
   toggleFavourite,
+  updateUser,
 };

@@ -26,6 +26,7 @@ export default function Customise() {
                 setUser(data.user);
                 setName(data.user.name);
                 setEmail(data.user.email);
+                setAvatarFile(data.user.profilePicture)
             } catch (err) {
                 console.error("Error fetching user:", err);
             }
@@ -42,7 +43,7 @@ export default function Customise() {
         if (avatarFile) formData.append("avatar", avatarFile);
 
         try {
-            const res = await fetch("http://localhost:3000/api/v1/users/update-profile", {
+            const res = await fetch("http://localhost:3000/api/v1/users/", {
                 method: "PUT",
                 headers: {
                     authorization: `Bearer ${token}`,
@@ -78,8 +79,8 @@ export default function Customise() {
                         <h2 className="text-white text-2xl font-bold text-center">Customise Profile</h2>
                         <div className="flex justify-center">
                             <Avatar className="h-24 w-24">
-                                <AvatarImage src={user?.avatarUrl} alt={user?.name} />
-                                <AvatarFallback>{user?.name?.[0] || "?"}</AvatarFallback>
+                                <AvatarImage src={`http://localhost:3000${avatarFile}`} alt={user?.name} />
+                                {<AvatarFallback>{user?.name?.[0] || "?"}</AvatarFallback>}
                             </Avatar>
                         </div>
                         <form onSubmit={handleSubmit} className="space-y-4">
@@ -100,7 +101,7 @@ export default function Customise() {
                             <div className="grid w-full max-w-sm items-center gap-1.5">
                                 <Label className="text-white" htmlFor="picture">Add profile image</Label>
                                 <Input className="bg-gray-700 text-white" id="picture" type="file" accept="image/*" onChange={(e) => setAvatarFile(e.target.files[0])} />
-                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">SVG, PNG, JPG or GIF (MAX. 800x400px).</p>
+                                <p className="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help">SVG, PNG, JPG or GIF (MAX. 800x400px).</p>
                             </div>
                             <Button type="submit" className="w-full hover:bg-gray-700">
                                 Save Changes
