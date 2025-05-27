@@ -300,15 +300,15 @@ export default function MessagingApp() {
             </>
           ) : (
             <>
-              <Avatar className="h-8 w-8 mt-1 flex-shrink-0">
+              <Link to="/customise"><Avatar className="h-8 w-8 mt-1 flex-shrink-0">
                 <AvatarImage
                   src={user.profilePicture ? `${host}${user.profilePicture}` : undefined}
                   alt={user.name}
                 />
                 <AvatarFallback className="text-gray-500">{user.name?.[0]}</AvatarFallback>
               </Avatar>
-              <h2 className="flex text-lg font-semibold self-center">Hello, {user.name}</h2>
-              <Link to="/customise"><Button className="hover:bg-gray-700">Customise Profile</Button></Link>
+              </Link>
+              <Link className="flex text-lg font-semibold items-center" to="/customise"><h2>Hello, {user.name}</h2></Link>
               <Button onClick={logout} className="hover:bg-gray-700">Logout</Button>
             </>
           )}
