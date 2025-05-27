@@ -299,7 +299,7 @@ export default function MessagingApp() {
                     >
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={contactUser?.profilePicture && `${host}${contactUser.profilePicture}`} alt={contactUser?.name} />
-                        <AvatarFallback>{contactUser?.name?.[0]}</AvatarFallback>
+                        <AvatarFallback className="text-gray-500">{contactUser?.name[0]}</AvatarFallback>
                       </Avatar>
                       <span>{name}</span>
                     </li>
@@ -325,7 +325,7 @@ export default function MessagingApp() {
                       <div className="flex items-center gap-2">
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={`${host}${u.profilePicture}`} alt={u.name} />
-                          <AvatarFallback>{u.name?.[0]}</AvatarFallback>
+                          <AvatarFallback className="text-gray-500">{u.name?.[0]}</AvatarFallback>
                         </Avatar>
                         <span>{u.name}</span>
                       </div>
@@ -363,7 +363,7 @@ export default function MessagingApp() {
                       <div className="flex items-center gap-2">
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={`${host}${u.profilePicture}`} alt={u.name} />
-                          <AvatarFallback>{u.name?.[0]}</AvatarFallback>
+                          <AvatarFallback className="text-gray-500">{u.name?.[0]}</AvatarFallback>
                         </Avatar>
                         <span>{u.name}</span>
                       </div>
@@ -413,7 +413,7 @@ export default function MessagingApp() {
                               }
                               alt={senderUser?.name}
                             />
-                            <AvatarFallback className="text-xs">
+                            <AvatarFallback className="text-gray-500">
                               {senderUser?.name?.[0]}
                             </AvatarFallback>
                           </Avatar>
@@ -447,7 +447,7 @@ export default function MessagingApp() {
                               }
                               alt={user.name}
                             />
-                            <AvatarFallback className="text-xs">
+                            <AvatarFallback className="text-gray-500">
                               {user.name?.[0]}
                             </AvatarFallback>
                           </Avatar>
@@ -465,7 +465,7 @@ export default function MessagingApp() {
                     src={user.profilePicture ? `${host}${user.profilePicture}` : undefined}
                     alt={user.name}
                   />
-                  <AvatarFallback className="text-xs">{user.name?.[0]}</AvatarFallback>
+                  <AvatarFallback className="text-gray-500">{user.name?.[0]}</AvatarFallback>
                 </Avatar>
                 <Input
                   type="text"
