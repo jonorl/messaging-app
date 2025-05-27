@@ -129,7 +129,7 @@ mainRouter.get("/api/v1/favourite", authenticateToken, async (req, res) => {
 
 mainRouter.put("/api/v1/users", authenticateToken, multer.single("avatar"), async (req, res) => {
   try {
-    const avatar = req.file ? `/uploads/${req.file.filename}` : undefined;
+    const avatar = req.file ? `/assets/${req.file.filename}` : undefined;
     const user = await db.updateUser(req.user.userId, req.body.name, req.body.email, avatar); 
     res.json({ user: { ...user, avatarUrl: user.profilePicture } });
   } catch (err) {
