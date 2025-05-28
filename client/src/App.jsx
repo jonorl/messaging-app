@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { Paperclip } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Paperclip, CirclePlus } from "lucide-react";
 
 const host = import.meta.env.VITE_LOCALHOST;
 
@@ -35,6 +37,9 @@ export default function MessagingApp() {
   const [progress, setProgress] = useState(13);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [imageFile, setImageFile] = useState(null);
+  const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
+  const [groupName, setGroupName] = useState("");
+  const [selectedMembers, setSelectedMembers] = useState([]);
   const messagesRef = useRef(messages);
   const lastMessageRef = useRef(null);
   const chatContainerRef = useRef(null);
@@ -116,7 +121,7 @@ export default function MessagingApp() {
     fetchUser();
   }, [token]);
 
-// Fetch messages, contacts, and groups
+  // Fetch messages, contacts, and groups
   useEffect(() => {
     if (!token || !user) {
       setLoadingMessages(false);
@@ -290,6 +295,44 @@ export default function MessagingApp() {
     }
   };
 
+  const createGroup = async () => {
+    if (!groupName || selectedMembers.length === 0) return;
+
+    try {
+      const response = await fetch("http://localhost:3000/api/v1/groups", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: groupName,
+          memberIds: selectedMembers,
+        }),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        setGroups([...groups, result.group]);
+        setIsGroupDialogOpen(false);
+        setGroupName("");
+        setSelectedMembers([]);
+      } else {
+        console.error("Failed to create group:", result.message);
+      }
+    } catch (error) {
+      console.error("Failed to create group:", error);
+    }
+  };
+
+  const toggleMember = (userId) => {
+    setSelectedMembers((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
   const filteredMessages = messages.filter((msg) =>
     selectedGroupId
       ? msg.groupId === selectedGroupId
@@ -428,7 +471,17 @@ export default function MessagingApp() {
 
           {user && (
             <div>
-              <h2 className="text-lg font-semibold mb-2">Groups</h2>
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-lg font-semibold">Groups</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsGroupDialogOpen(true)}
+                  className="text-gray-300 hover:text-white items-center"
+                >
+                  <CirclePlus className="h-5 w-5" />
+                </Button>
+              </div>
               <ul className="space-y-2">
                 {groups.map((group) => (
                   <li
@@ -454,6 +507,64 @@ export default function MessagingApp() {
               </ul>
             </div>
           )}
+
+          <Dialog open={isGroupDialogOpen} onOpenChange={setIsGroupDialogOpen}>
+            <DialogContent className="bg-gray-800 text-white">
+              <DialogHeader>
+                <DialogTitle className="mb-2">Create New Group</DialogTitle>
+              </DialogHeader>
+              <div >
+                <div>
+                  <Label htmlFor="group-name" className="text-gray-300 mb-4">Group Name</Label>
+                  <Input
+                    id="group-name"
+                    value={groupName}
+                    onChange={(e) => setGroupName(e.target.value)}
+                    placeholder="Enter group name"
+                    className="bg-gray-700 border-gray-600 text-white mb-4"
+                  />
+                </div>
+                <div>
+                  <Label className="text-gray-300 mb-4">Select Members</Label>
+                  <ul className="space-y-2 max-h-60 overflow-y-auto">
+                    {allUsers
+                      .filter((u) => u.id !== user?.id)
+                      .map((u) => (
+                        <li
+                          key={u.id}
+                          className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${
+                            selectedMembers.includes(u.id) ? "bg-blue-600" : "hover:bg-gray-700"
+                          }`}
+                          onClick={() => toggleMember(u.id)}
+                        >
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={`${host}${u.profilePicture}`} alt={u.name} />
+                            <AvatarFallback className="text-gray-500">{u.name?.[0]}</AvatarFallback>
+                          </Avatar>
+                          <span>{u.name}</span>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsGroupDialogOpen(false)}
+                  className="bg-gray-700 text-white border-gray-600"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={createGroup}
+                  disabled={!groupName || selectedMembers.length === 0}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Create Group
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {user && (
             <div>
