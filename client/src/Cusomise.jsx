@@ -159,7 +159,7 @@ export default function Customise() {
                         <h2 className="text-white text-2xl font-bold text-center">Customise Profile</h2>
                         <div className="flex justify-center">
                             <Avatar className="h-24 w-24">
-                                <AvatarImage src={`${host}${avatarFile}`} alt={user?.name} />{console.log(`${host}${avatarFile}`)}
+                                <AvatarImage src={`${host}/${avatarFile}`} alt={user?.name} />
                                 {<AvatarFallback>{user?.name?.[0] || "?"}</AvatarFallback>}
                             </Avatar>
                         </div>
