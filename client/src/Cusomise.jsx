@@ -60,7 +60,7 @@ export default function Customise() {
             }
         }
         fetchUser();
-    }, [token]);
+    }, [token, host]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
