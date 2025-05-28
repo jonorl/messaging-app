@@ -33,7 +33,7 @@ export default function LoginPage() {
             };
             setLoadingUser(true);
             try {
-                const res = await fetch("http://localhost:3000/api/v1/me", {
+                const res = await fetch(`${host}/api/v1/me`, {
                     headers: { authorization: `Bearer ${token}` },
                 });
                 const data = await res.json();
@@ -49,7 +49,7 @@ export default function LoginPage() {
 
     const handleLogin = async () => {
         try {
-            const response = await fetch("http://localhost:3000/api/v1/login", {
+            const response = await fetch(`${host}/api/v1/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
@@ -76,7 +76,7 @@ export default function LoginPage() {
 
         const handleGuestLogin = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/v1/guest/', {
+      const res = await fetch(`${host}/api/v1/guest/`, {
         method: 'POST',
       });
 

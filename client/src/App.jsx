@@ -70,7 +70,7 @@ export default function MessagingApp() {
 
     const fetchOnlineUsers = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/v1/online", {
+        const res = await fetch(`${host}/api/v1/online`, {
           headers: { authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -89,7 +89,7 @@ export default function MessagingApp() {
     if (!token || !user) return;
 
     const intervalId = setInterval(() => {
-      fetch("http://localhost:3000/api/v1/heartbeat", {
+      fetch(`${host}/api/v1/heartbeat`, {
         method: "POST",
         headers: {
           authorization: `Bearer ${token}`,
@@ -106,7 +106,7 @@ export default function MessagingApp() {
       if (!token) return;
       setLoadingUser(true);
       try {
-        const res = await fetch("http://localhost:3000/api/v1/me", {
+        const res = await fetch(`${host}/api/v1/me`, {
           headers: { authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -137,7 +137,7 @@ export default function MessagingApp() {
 
       try {
         // Fetch direct messages
-        const messagesRes = await fetch("http://localhost:3000/api/v1/messages", {
+        const messagesRes = await fetch(`${host}/api/v1/messages`, {
           headers: {
             "Content-Type": "application/json",
             authorization: `Bearer ${token}`,
@@ -148,7 +148,7 @@ export default function MessagingApp() {
         // Fetch group messages if a group is selected
         let groupMessages = [];
         if (selectedGroupId) {
-          const groupMessagesRes = await fetch(`http://localhost:3000/api/v1/groups/${selectedGroupId}/messages`, {
+          const groupMessagesRes = await fetch(`${host}/api/v1/groups/${selectedGroupId}/messages`, {
             headers: {
               authorization: `Bearer ${token}`,
             },
@@ -181,7 +181,7 @@ export default function MessagingApp() {
         }
 
         // Fetch groups
-        const groupsRes = await fetch("http://localhost:3000/api/v1/groups", {
+        const groupsRes = await fetch(`${host}/api/v1/groups`, {
           headers: { authorization: `Bearer ${token}` },
         });
         const groupsData = await groupsRes.json();
@@ -207,7 +207,7 @@ export default function MessagingApp() {
 
     async function fetchFavourites() {
       try {
-        const favouritesRes = await fetch("http://localhost:3000/api/v1/favourite", {
+        const favouritesRes = await fetch(`${host}/api/v1/favourite`, {
           headers: { authorization: `Bearer ${token}` },
         });
         const favouritesData = await favouritesRes.json();
@@ -226,7 +226,7 @@ export default function MessagingApp() {
 
     async function fetchUsers() {
       try {
-        const usersRes = await fetch("http://localhost:3000/api/v1/users", {
+        const usersRes = await fetch(`${host}/api/v1/users`, {
           headers: { authorization: `Bearer ${token}` },
         });
         const usersData = await usersRes.json();
@@ -278,8 +278,8 @@ export default function MessagingApp() {
 
     try {
       const endpoint = selectedGroupId
-        ? `http://localhost:3000/api/v1/groups/${selectedGroupId}/messages`
-        : "http://localhost:3000/api/v1/messages/";
+        ? `${host}/api/v1/groups/${selectedGroupId}/messages`
+        : `${host}/api/v1/messages/`;
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
@@ -299,7 +299,7 @@ export default function MessagingApp() {
     if (!groupName || selectedMembers.length === 0) return;
 
     try {
-      const response = await fetch("http://localhost:3000/api/v1/groups", {
+      const response = await fetch(`${host}/api/v1/groups`, {
         method: "POST",
         headers: {
           authorization: `Bearer ${token}`,
@@ -353,7 +353,7 @@ export default function MessagingApp() {
     }));
 
     try {
-      const response = await fetch("http://localhost:3000/api/v1/favourite/", {
+      const response = await fetch(`${host}/api/v1/favourite/`, {
         method: "POST",
         headers: {
           authorization: `Bearer ${token}`,
@@ -376,7 +376,7 @@ export default function MessagingApp() {
 
   const handleGuestLogin = async () => {
     try {
-      const res = await fetch('http://localhost:3000/api/v1/guest/', {
+      const res = await fetch('`${host}/api/v1/guest/', {
         method: 'POST',
       });
 

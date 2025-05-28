@@ -44,7 +44,7 @@ export default function Customise() {
             };
             setLoadingUser(true);
             try {
-                const res = await fetch("http://localhost:3000/api/v1/me", {
+                const res = await fetch(`${host}}/api/v1/me`, {
                     headers: { authorization: `Bearer ${token}` },
                 });
                 const data = await res.json();
@@ -70,7 +70,7 @@ export default function Customise() {
         if (avatarFile) formData.append("avatar", avatarFile);
 
         try {
-            const res = await fetch("http://localhost:3000/api/v1/users/", {
+            const res = await fetch(`${host}/api/v1/users/`, {
                 method: "PUT",
                 headers: {
                     authorization: `Bearer ${token}`,
@@ -97,7 +97,7 @@ export default function Customise() {
                 alert("The developer has blocked the guest account from being deleted.");
                 return;
             }
-            const res = await fetch("http://localhost:3000/api/v1/me/", {
+            const res = await fetch(`${host}/api/v1/me/`, {
                 method: "DELETE",
                 headers: {
                     authorization: `Bearer ${token}`,
