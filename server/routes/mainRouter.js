@@ -101,6 +101,9 @@ mainRouter.post("/api/v1/signup/", validateUser, async (req, res) => {
       { expiresIn: "1d" }
     );
 
+    // Make it favourite the robot by default (hardcoded)
+    await db.toggleFavourite(newUser.id, "8d7118e1-0f6c-466c-9c17-e7c8bc42af8e")
+
     res.status(201).json({ token });
   } catch (err) {
     console.error("Signup error:", err);
@@ -225,6 +228,9 @@ mainRouter.post("/api/v1/guest", validateUser, async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
+
+    // Make it favourite the robot by default (hardcoded)
+    await db.toggleFavourite(newUser.id, "8d7118e1-0f6c-466c-9c17-e7c8bc42af8e")
 
     res.status(201).json({ token });
   } catch (err) {
