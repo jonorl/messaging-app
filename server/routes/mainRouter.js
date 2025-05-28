@@ -41,7 +41,6 @@ mainRouter.post("/api/v1/login", async (req, res) => {
 
 mainRouter.get("/api/v1/messages/", authenticateToken, async (req, res) => {
   const messages = await db.readMessages(req.user.userId);
-  console.log("messages: ", messages);
   res.json({ messages });
 });
 
@@ -105,7 +104,10 @@ mainRouter.get("/api/v1/me", authenticateToken, async (req, res) => {
 
 mainRouter.post("/api/v1/favourite", authenticateToken, async (req, res) => {
   try {
-    const favourite = await db.toggleFavourite(req.user.userId, req.body.favUser);
+    const favourite = await db.toggleFavourite(
+      req.user.userId,
+      req.body.favUser
+    );
     res.json({ favourite });
   } catch (err) {
     console.error("Failed to get user:", err);
@@ -117,9 +119,9 @@ mainRouter.get("/api/v1/favourite", authenticateToken, async (req, res) => {
   try {
     const favourite = await db.userWithFavourites(req.user.userId);
     const favouriteIdsMap = favourite.reduce((acc, currentFavourite) => {
-    acc[currentFavourite.favouriteId] = true;
-    return acc;
-  }, {}); 
+      acc[currentFavourite.favouriteId] = true;
+      return acc;
+    }, {});
     res.json({ favouriteIdsMap });
   } catch (err) {
     console.error("Failed to get user:", err);
@@ -127,16 +129,26 @@ mainRouter.get("/api/v1/favourite", authenticateToken, async (req, res) => {
   }
 });
 
-mainRouter.put("/api/v1/users", authenticateToken, multer.single("avatar"), async (req, res) => {
-  try {
-    const avatar = req.file ? `/assets/${req.file.filename}` : undefined;
-    const user = await db.updateUser(req.user.userId, req.body.name, req.body.email, avatar); 
-    res.json({ user: { ...user, avatarUrl: user.profilePicture } });
-  } catch (err) {
-    console.error("Failed to get user:", err);
-    res.status(500).json({ message: "Server error" });
+mainRouter.put(
+  "/api/v1/users",
+  authenticateToken,
+  multer.single("avatar"),
+  async (req, res) => {
+    try {
+      const avatar = req.file ? `/assets/${req.file.filename}` : undefined;
+      const user = await db.updateUser(
+        req.user.userId,
+        req.body.name,
+        req.body.email,
+        avatar
+      );
+      res.json({ user: { ...user, avatarUrl: user.profilePicture } });
+    } catch (err) {
+      console.error("Failed to get user:", err);
+      res.status(500).json({ message: "Server error" });
+    }
   }
-});
+);
 
 mainRouter.post("/api/v1/heartbeat", authenticateToken, (req, res) => {
   const userId = req.user.userId;
@@ -149,11 +161,30 @@ mainRouter.get("/api/v1/online", authenticateToken, (req, res) => {
   res.json({ online: Array.from(onlineUsers.keys()) });
 });
 
+mainRouter.delete("/api/v1/me", authenticateToken, async (req, res) => {
+  try {
+    // Block deletion of guest user
+    if (req.user.email === "guest@messaging.com") {
+      console.log("denied")
+      return res.status(403).json({
+        message:
+          "The developer has blocked the guest account from being deleted.",
+      });
+    }
+    const user = await db.deleteMe(req.user.userId);
+    res.json({ user });
+  } catch (err) {
+    console.error("Failed to get user:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 // Clean up old entries (run every minute)
 setInterval(() => {
   const now = Date.now();
   for (const [userId, lastSeen] of onlineUsers.entries()) {
-    if (now - lastSeen > 60000) { // 60 seconds timeout
+    if (now - lastSeen > 60000) {
+      // 60 seconds timeout
       onlineUsers.delete(userId);
     }
   }

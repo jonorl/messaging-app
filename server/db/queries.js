@@ -61,7 +61,7 @@ async function getAllUsers() {
     select: {
       id: true,
       name: true,
-      profilePicture: true
+      profilePicture: true,
     },
   });
   return users;
@@ -126,6 +126,13 @@ async function updateUser(id, name, email, profileURL) {
   return user;
 }
 
+async function deleteMe(id) {
+  const user = await prisma.user.delete({
+    where: { id: id },
+  });
+  return user;
+}
+
 module.exports = {
   readMessages,
   postMessages,
@@ -136,4 +143,5 @@ module.exports = {
   userWithFavourites,
   toggleFavourite,
   updateUser,
+  deleteMe,
 };

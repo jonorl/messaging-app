@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress"
 
 export default function Customise() {
     const navigate = useNavigate();
@@ -13,25 +14,40 @@ export default function Customise() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [avatarFile, setAvatarFile] = useState(null);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [loadingUser, setLoadingUser] = useState(true);
+    const [progress, setProgress] = useState(13)
+
     const host = import.meta.env.VITE_LOCALHOST
 
     useEffect(() => {
+        const timer = setTimeout(() => setProgress(66), 500)
+        return () => clearTimeout(timer)
+    }, [])
+
+    useEffect(() => {
         async function fetchUser() {
-            if (!token) return;
+            if (!token) {
+                setLoadingUser(false);
+                return
+            };
+            setLoadingUser(true);
             try {
                 const res = await fetch("http://localhost:3000/api/v1/me", {
                     headers: { authorization: `Bearer ${token}` },
                 });
                 const data = await res.json();
+                console.log("data", data)
                 setUser(data.user);
                 setName(data.user.name);
                 setEmail(data.user.email);
                 setAvatarFile(data.user.profilePicture)
             } catch (err) {
                 console.error("Error fetching user:", err);
+            } finally {
+                setLoadingUser(false);
             }
         }
-
         fetchUser();
     }, [token]);
 
@@ -64,6 +80,27 @@ export default function Customise() {
         navigate("/login");
     };
 
+    const deleteProfile = async () => {
+        try {
+            if (user.email === "guest@messaging.com") {
+                alert("The developer has blocked the guest account from being deleted.");
+                return;
+            }
+            const res = await fetch("http://localhost:3000/api/v1/me/", {
+                method: "DELETE",
+                headers: {
+                    authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!res.ok) throw new Error("Failed to delete profile");
+            if (res.ok) localStorage.removeItem("token");
+            navigate("/");
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
     return (
         <div className="flex flex-col h-screen bg-gray-900 text-white">
             {/* Header */}
@@ -72,22 +109,39 @@ export default function Customise() {
                     Messaging App
                 </Link>
                 <div className="space-x-2 flex">
-                    {!user && (
+                    {loadingUser ? (
+                        <div className="flex items-center justify-center w-full space-x-4">
+                            <Progress
+                                value={progress}
+                                className="w-48 h-2 bg-gray-300"
+                            />
+                            <span className="text-sm font-medium text-white whitespace-nowrap">
+                                Loading user...
+                            </span>
+                        </div>
+                    ) : !user ? (
                         <>
                             <Link to="/guest"><Button className="hover:bg-gray-700">Guest login</Button></Link>
                             <Link to="/signup"><Button className="hover:bg-gray-700">Sign Up</Button></Link>
                             <Link to="/login"><Button className="hover:bg-gray-700">Login</Button></Link>
                         </>
-                    )}
-                    {user && (
+                    ) : (
                         <>
-                            <h2 className="flex text-lg font-semibold self-center">Hello, {user.name}</h2>
+                            <Link to="/customise"><Avatar className="h-8 w-8 mt-1 flex-shrink-0">
+                                <AvatarImage
+                                    src={user.profilePicture ? `${host}${user.profilePicture}` : undefined}
+                                    alt={user.name}
+                                />
+                                <AvatarFallback className="text-gray-500">{user.name?.[0]}</AvatarFallback>
+                            </Avatar>
+                            </Link>
+                            <Link className="flex text-lg font-semibold items-center" to="/customise"><h2>Hello, {user.name}</h2></Link>
                             <Button onClick={logout} className="hover:bg-gray-700">Logout</Button>
-                            <Link to="/customise"><Button className="hover:bg-gray-700">Customise Profile</Button></Link>
                         </>
                     )}
                 </div>
             </header>
+
             <main className="flex flex-col flex-1 p-4 overflow-hidden justify-center items-center">
                 <Card className="w-full max-w-md bg-gray-800 p-6 rounded-xl">
                     <CardContent className="space-y-6">
@@ -121,6 +175,24 @@ export default function Customise() {
                             <Button type="submit" className="w-full hover:bg-gray-700">
                                 Save Changes
                             </Button>
+                            <Button
+                                type="button" // adding this to avoid submitting the form
+                                onClick={() => setShowConfirmModal(true)}
+                                className="w-full text-gray-200 hover:text-gray-600 bg-red-500 hover:bg-red-400">Delete Profile
+                            </Button>
+                            {showConfirmModal && (
+                                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                                    <div className="bg-gray-800 p-6 rounded-lg shadow-lg text-center space-y-4">
+                                        <h3 className="text-white text-lg font-semibold">Are you sure?</h3>
+                                        <p className="text-gray-400">This action cannot be undone.</p>
+                                        <div className="flex justify-center space-x-4">
+                                            <Button className="bg-red-600 hover:bg-red-500" onClick={deleteProfile}>Yes, delete</Button>
+                                            <Button className="bg-gray-600 hover:bg-gray-500" onClick={() => setShowConfirmModal(false)}>Cancel</Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                         </form>
                     </CardContent>
                 </Card>

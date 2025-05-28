@@ -1,16 +1,52 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress"
 
 export default function SignupPage() {
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
+  const [loadingUser, setLoadingUser] = useState(true);
+  const [progress, setProgress] = useState(13)
+  const [user, setUser] = useState(null);
+
+  const host = import.meta.env.VITE_LOCALHOST
+
+  useEffect(() => {
+    const timer = setTimeout(() => setProgress(66), 500)
+    return () => clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    async function fetchUser() {
+      if (!token) {
+        setLoadingUser(false);
+        return
+      };
+      setLoadingUser(true);
+      try {
+        const res = await fetch("http://localhost:3000/api/v1/me", {
+          headers: { authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        setUser(data.user);
+      } catch (err) {
+        console.error("Error fetching user:", err);
+      } finally {
+        setLoadingUser(false);
+      }
+    }
+    fetchUser();
+  }, [token]);
 
   const handleSignup = async () => {
     try {
@@ -33,19 +69,49 @@ export default function SignupPage() {
     }
   };
 
+  const logout = () => {
+    localStorage.removeItem("token");
+    setUser(null);
+    navigate("/login");
+  };
+
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-white">
-      {/* Header */}
       <header className="bg-gray-800 shadow-md p-4 flex justify-between items-center">
         <Link to="/" className="text-xl font-bold cursor-pointer hover:text-blue-400">
           Messaging App
         </Link>
-        <div className="space-x-2">
-          <Link to="/guest"><Button className="hover:bg-gray-700">Guest login</Button></Link>
-          <Link to="/signup"><Button className="hover:bg-gray-700">Sign Up</Button></Link>
-          <Link to="/login"><Button className="hover:bg-gray-700">Login</Button></Link>
-          <Link to="/logout"><Button className="hover:bg-gray-700">Logout</Button></Link>
-          <Link to="/customise"><Button className="hover:bg-gray-700">Customise Profile</Button></Link>
+        <div className="space-x-2 flex">
+          {loadingUser ? (
+            <div className="flex items-center justify-center w-full space-x-4">
+              <Progress
+                value={progress}
+                className="w-48 h-2 bg-gray-300"
+              />
+              <span className="text-sm font-medium text-white whitespace-nowrap">
+                Loading user...
+              </span>
+            </div>
+          ) : !user ? (
+            <>
+              <Link to="/guest"><Button className="hover:bg-gray-700">Guest login</Button></Link>
+              <Link to="/signup"><Button className="hover:bg-gray-700">Sign Up</Button></Link>
+              <Link to="/login"><Button className="hover:bg-gray-700">Login</Button></Link>
+            </>
+          ) : (
+            <>
+              <Link to="/customise"><Avatar className="h-8 w-8 mt-1 flex-shrink-0">
+                <AvatarImage
+                  src={user.profilePicture ? `${host}${user.profilePicture}` : undefined}
+                  alt={user.name}
+                />
+                <AvatarFallback className="text-gray-500">{user.name?.[0]}</AvatarFallback>
+              </Avatar>
+              </Link>
+              <Link className="flex text-lg font-semibold items-center" to="/customise"><h2>Hello, {user.name}</h2></Link>
+              <Button onClick={logout} className="hover:bg-gray-700">Logout</Button>
+            </>
+          )}
         </div>
       </header>
 
