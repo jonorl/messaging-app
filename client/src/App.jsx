@@ -376,7 +376,7 @@ export default function MessagingApp() {
 
   const handleGuestLogin = async () => {
     try {
-      const res = await fetch('`${host}/api/v1/guest/', {
+      const res = await fetch(`${host}/api/v1/guest/`, {
         method: 'POST',
       });
 

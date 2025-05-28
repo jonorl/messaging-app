@@ -46,7 +46,7 @@ export default function SignupPage() {
       }
     }
     fetchUser();
-  }, [token]);
+  }, [token, host]);
 
   const handleSignup = async () => {
     try {
