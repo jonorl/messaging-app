@@ -140,7 +140,7 @@ export default function Customise() {
                         <>
                             <Link to="/customise"><Avatar className="h-8 w-8 mt-1 flex-shrink-0">
                                 <AvatarImage
-                                    src={user.profilePicture ? `${host}${user.profilePicture}` : undefined}
+                                    src={user.profilePicture ? `${host}/${user.profilePicture}` : undefined}
                                     alt={user.name}
                                 />
                                 <AvatarFallback className="text-gray-500">{user.name?.[0]}</AvatarFallback>
