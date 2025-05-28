@@ -24,17 +24,17 @@ model Message {
   id         String   @id @default(uuid())
   text       String
   createdAt  DateTime @default(now())
-  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
   senderId   String
-  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
   receiverId String
 }
 
 model Favourite {
   id            String @id @default(uuid())
-  user          User   @relation(fields: [userId], references: [id])
+  user          User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId        String
-  favouriteUser User   @relation("FavouriteUser", fields: [favouriteId], references: [id])
+  favouriteUser User   @relation("FavouriteUser", fields: [favouriteId], references: [id], onDelete: Cascade)
   favouriteId   String
 
   @@unique([userId, favouriteId])
