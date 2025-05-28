@@ -28,12 +28,13 @@ async function readMessages(id) {
     receiverId: msg.receiverId,
     sender: msg.sender.name,
     receiver: msg.receiver.name,
+    imageUrl: msg.imageUrl,
   }));
 }
 
-async function postMessages(senderId, text, receiverId) {
+async function postMessages(senderId, text, receiverId, imageUrl=null) {
   const message = await prisma.Message.create({
-    data: { senderId: senderId, text: text, receiverId: receiverId },
+    data: { senderId: senderId, text: text, receiverId: receiverId, imageUrl: imageUrl },
   });
   return message;
 }

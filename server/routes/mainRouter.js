@@ -44,15 +44,26 @@ mainRouter.get("/api/v1/messages/", authenticateToken, async (req, res) => {
   res.json({ messages });
 });
 
-mainRouter.post("/api/v1/messages/", authenticateToken, async (req, res) => {
-  const senderId = req.body.senderId;
-  const text = req.body.text;
-  const receiverId = req.body.receiverId;
-  const postedMessage = await db.postMessages(senderId, text, receiverId);
-  console.log("posted message: ", postedMessage);
-  res.json({ postedMessage });
-});
 
+mainRouter.post("/api/v1/messages/", authenticateToken, multer.single("image"), async (req, res) => {
+  try {
+    const senderId = req.body.senderId;
+    const text = req.body.text;
+    const receiverId = req.body.receiverId;
+
+    // If a file was uploaded, get its path
+    const imageUrl = req.file ? `/assets/${req.file.filename}` : null;
+
+    // Save to DB
+    const postedMessage = await db.postMessages(senderId, text, receiverId, imageUrl);
+
+    console.log("posted message:", postedMessage);
+    res.json({ postedMessage });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong." });
+  }
+});
 mainRouter.post("/api/v1/signup/", validateUser, async (req, res) => {
   try {
     const { name, email, password } = req.body;

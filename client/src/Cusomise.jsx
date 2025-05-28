@@ -6,6 +6,17 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export default function Customise() {
     const navigate = useNavigate();
@@ -181,16 +192,25 @@ export default function Customise() {
                                 className="w-full text-gray-200 hover:text-gray-600 bg-red-500 hover:bg-red-400">Delete Profile
                             </Button>
                             {showConfirmModal && (
-                                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                                    <div className="bg-gray-800 p-6 rounded-lg shadow-lg text-center space-y-4">
-                                        <h3 className="text-white text-lg font-semibold">Are you sure?</h3>
-                                        <p className="text-gray-400">This action cannot be undone.</p>
-                                        <div className="flex justify-center space-x-4">
-                                            <Button className="bg-red-600 hover:bg-red-500" onClick={deleteProfile}>Yes, delete</Button>
-                                            <Button className="bg-gray-600 hover:bg-gray-500" onClick={() => setShowConfirmModal(false)}>Cancel</Button>
-                                        </div>
-                                    </div>
-                                </div>
+                                <AlertDialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+                                    <AlertDialogContent className="bg-gray-800">
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle className="text-white text-lg font-semibold">Are you sure?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                This action cannot be undone.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel className="text-gray-200 hover:text-gray-300 bg-gray-600 hover:bg-gray-500">Cancel</AlertDialogCancel>
+                                            <AlertDialogAction
+                                                className="bg-red-600 hover:bg-red-500 text-gray-200 hover:text-gray-600"
+                                                onClick={deleteProfile}
+                                            >
+                                                Yes, delete
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
                             )}
 
                         </form>

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress"
+import { Paperclip } from "lucide-react"; // or any icon lib you use
 
 const host = import.meta.env.VITE_LOCALHOST;
 
@@ -31,6 +32,7 @@ export default function MessagingApp() {
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [progress, setProgress] = useState(13)
   const [onlineUsers, setOnlineUsers] = useState([]);
+  const [imageFile, setImageFile] = useState(null);
   const messagesRef = useRef(messages);
 
   const navigate = useNavigate();
@@ -199,7 +201,9 @@ export default function MessagingApp() {
   }, [token]);
 
   const sendMessage = async () => {
-    if (newMessage.trim() === "") return;
+    if (newMessage.trim() === "" && !imageFile) return;
+
+    // Optimistic UI update
     setMessages([
       ...messages,
       {
@@ -208,21 +212,28 @@ export default function MessagingApp() {
         receiverId: selectedContactId,
         sender: "You",
         text: newMessage,
+        imageUrl: imageFile ? URL.createObjectURL(imageFile) : null,
       },
     ]);
+
+    const formData = new FormData();
+    formData.append("senderId", user.id);
+    formData.append("receiverId", selectedContactId);
+    formData.append("text", newMessage);
+    if (imageFile) {
+      formData.append("image", imageFile);
+    }
+
     setNewMessage("");
+    setImageFile(null);
+
     try {
       const response = await fetch("http://localhost:3000/api/v1/messages/", {
         method: "POST",
         headers: {
           authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          senderId: user.id,
-          text: newMessage,
-          receiverId: selectedContactId,
-        }),
+        body: formData,
       });
 
       const result = await response.json();
@@ -470,13 +481,17 @@ export default function MessagingApp() {
                           <p className="text-xs text-gray-400 mb-1 px-1">
                             {msg.sender}
                           </p>
-                          <div
-                            className={`px-4 py-3 rounded-2xl shadow-md relative ${isCurrentUser
-                              ? "bg-blue-600 text-white rounded-br-md"
-                              : "bg-gray-700 text-white rounded-bl-md"
-                              }`}
-                          >
-                            <p className="break-words">{msg.text}</p>
+                          <div className={`px-4 py-3 rounded-2xl shadow-md relative ${isCurrentUser
+                            ? "bg-blue-600 text-white rounded-br-md"
+                            : "bg-gray-700 text-white rounded-bl-md"}`}>
+                            {msg.text && <p className="break-words mb-2">{msg.text}</p>}{console.log(msg)}
+                            {msg.imageUrl && (
+                              <img
+                                src={`${host}${msg.imageUrl}`} // or just msg.imageUrl if you're not serving from host
+                                alt="attachment"
+                                className="max-w-xs rounded-md border border-gray-600"
+                              />
+                            )}
                             {msg.createdAt && (
                               <p className="text-xs text-gray-300 mt-2 opacity-75">
                                 {formatDate(msg.createdAt)}
@@ -515,6 +530,28 @@ export default function MessagingApp() {
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                 />
+
+                {/* Hidden file input and clickable icon */}
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    id="file-upload"
+                    onChange={(e) => setImageFile(e.target.files[0])}
+                    className="hidden"
+                  />
+                  <label htmlFor="file-upload" className="flex flex-1 cursor-pointer">
+                    <Paperclip className="text-gray-300 hover:text-white w-5 h-5" />
+                    {imageFile && (
+                      <span className="text-sm text-gray-400 ml-2 truncate max-w-[100px]">
+                        {imageFile.name}
+                      </span>
+                    )}
+
+                  </label>
+
+                </div>
+
                 <Button
                   className="hover:bg-blue-700 bg-blue-600 rounded-full px-6 py-2 transition-colors duration-200"
                   onClick={sendMessage}
