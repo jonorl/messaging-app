@@ -230,7 +230,7 @@ mainRouter.post("/api/v1/guest", validateUser, async (req, res) => {
     );
 
     // Make it favourite the robot by default (hardcoded)
-    await db.toggleFavourite(newUser.id, "8d7118e1-0f6c-466c-9c17-e7c8bc42af8e")
+    await db.toggleFavourite(newUser.id, process.env.ROBOT)
 
     res.status(201).json({ token });
   } catch (err) {
