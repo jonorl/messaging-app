@@ -479,7 +479,7 @@ export default function MessagingApp() {
                   onClick={() => setIsGroupDialogOpen(true)}
                   className="text-gray-300 hover:text-white items-center"
                 >
-                  <CirclePlus className="h-5 w-5" />
+                  <CirclePlus className="w-48 h-48" />
                 </Button>
               </div>
               <ul className="space-y-2">
