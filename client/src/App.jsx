@@ -337,7 +337,7 @@ export default function MessagingApp() {
     selectedGroupId
       ? msg.groupId === selectedGroupId
       : (msg.senderId === user?.id && msg.receiverId === selectedContactId) ||
-        (msg.receiverId === user?.id && msg.senderId === selectedContactId)
+      (msg.receiverId === user?.id && msg.senderId === selectedContactId)
   );
 
   const logout = () => {
@@ -397,17 +397,14 @@ export default function MessagingApp() {
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-white">
       {/* Header */}
-      <header className="bg-gray-800 shadow-md p-4 flex justify-between items-center">
+      <header className="bg-gray-800 shadow-md px-4 py-2 flex flex-wrap justify-between items-center gap-2 sm:gap-4">
         <Link to="/" className="text-xl font-bold cursor-pointer hover:text-blue-400">
           Messaging App
         </Link>
-        <div className="space-x-2 flex">
+        <div className="space-x-2 flex flex-wrap gap-2 items-center">
           {loadingUser ? (
             <div className="flex items-center justify-center w-full space-x-4">
-              <Progress
-                value={progress}
-                className="w-48 h-2 bg-gray-300"
-              />
+              <Progress value={progress} className="w-full max-w-xs h-2 bg-gray-300" />
               <span className="text-sm font-medium text-white whitespace-nowrap">
                 Loading user...
               </span>
@@ -420,15 +417,18 @@ export default function MessagingApp() {
             </>
           ) : (
             <>
-              <Link to="/customise"><Avatar className="h-8 w-8 mt-1 flex-shrink-0">
-                <AvatarImage
-                  src={user.profilePicture ? `${host}${user.profilePicture}` : undefined}
-                  alt={user.name}
-                />
-                <AvatarFallback className="text-gray-500">{user.name?.[0]}</AvatarFallback>
-              </Avatar>
+              <Link to="/customise">
+                <Avatar className="h-8 w-8 mt-1 flex-shrink-0">
+                  <AvatarImage
+                    src={user.profilePicture ? `${host}${user.profilePicture}` : undefined}
+                    alt={user.name}
+                  />
+                  <AvatarFallback className="text-gray-500">{user.name?.[0]}</AvatarFallback>
+                </Avatar>
               </Link>
-              <Link className="flex text-lg font-semibold items-center" to="/customise"><h2>Hello, {user.name}</h2></Link>
+              <Link className="flex text-lg font-semibold items-center" to="/customise">
+                <h2 className="text-base sm:text-lg">Hello, {user.name}</h2>
+              </Link>
               <Button onClick={logout} className="hover:bg-gray-700">Logout</Button>
             </>
           )}
@@ -436,9 +436,9 @@ export default function MessagingApp() {
       </header>
 
       {/* Main content */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
         {/* Sidebar */}
-        <aside className="w-64 bg-gray-800 p-4 overflow-y-auto border-r border-gray-700 space-y-6">
+        <aside className="hidden md:block w-64 bg-gray-800 p-4 overflow-y-auto border-r border-gray-700 space-y-6">
           {user && (
             <div>
               <h2 className="text-lg font-semibold mb-2">Conversations</h2>
@@ -532,9 +532,8 @@ export default function MessagingApp() {
                       .map((u) => (
                         <li
                           key={u.id}
-                          className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${
-                            selectedMembers.includes(u.id) ? "bg-blue-600" : "hover:bg-gray-700"
-                          }`}
+                          className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${selectedMembers.includes(u.id) ? "bg-blue-600" : "hover:bg-gray-700"
+                            }`}
                           onClick={() => toggleMember(u.id)}
                         >
                           <Avatar className="h-8 w-8">
@@ -656,7 +655,7 @@ export default function MessagingApp() {
           {loadingMessages ? (
             <div className="flex flex-col justify-center items-center flex-1">
               <div className="text-gray-400 text-lg animate-pulse mb-8">Loading messages...</div>
-              <Progress value={progress} className="w-[60%] h-2 bg-gray-300" />
+              <Progress value={progress} className="w-[90%] max-w-md h-2 bg-gray-300" />
             </div>
           ) : user ? (
             <>
@@ -674,19 +673,13 @@ export default function MessagingApp() {
                         {!isCurrentUser && (
                           <Avatar className="h-8 w-8 mt-1 flex-shrink-0">
                             <AvatarImage
-                              src={
-                                senderUser?.profilePicture
-                                  ? `${host}${senderUser.profilePicture}`
-                                  : undefined
-                              }
+                              src={senderUser?.profilePicture ? `${host}${senderUser.profilePicture}` : undefined}
                               alt={senderUser?.name}
                             />
-                            <AvatarFallback className="text-gray-500">
-                              {senderUser?.name?.[0]}
-                            </AvatarFallback>
+                            <AvatarFallback className="text-gray-500">{senderUser?.name?.[0]}</AvatarFallback>
                           </Avatar>
                         )}
-                        <div className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"} max-w-xs`}>
+                        <div className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"} w-full max-w-[90%] sm:max-w-[75%]`}>
                           <p className="text-xs text-gray-400 mb-1 px-1">
                             {msg.sender?.name || msg.sender}
                           </p>
@@ -698,7 +691,7 @@ export default function MessagingApp() {
                               <img
                                 src={`${host}${msg.image || msg.imageUrl}`}
                                 alt="attachment"
-                                className="max-w-xs rounded-md border border-gray-600"
+                                className="w-full max-w-xs sm:max-w-sm rounded-md border border-gray-600"
                               />
                             )}
                             {msg.createdAt && (
@@ -711,14 +704,10 @@ export default function MessagingApp() {
                         {isCurrentUser && (
                           <Avatar className="h-8 w-8 mt-1 flex-shrink-0">
                             <AvatarImage
-                              src={
-                                user.profilePicture ? `${host}${user.profilePicture}` : undefined
-                              }
+                              src={user.profilePicture ? `${host}${user.profilePicture}` : undefined}
                               alt={user.name}
                             />
-                            <AvatarFallback className="text-gray-500">
-                              {user.name?.[0]}
-                            </AvatarFallback>
+                            <AvatarFallback className="text-gray-500">{user.name?.[0]}</AvatarFallback>
                           </Avatar>
                         )}
                       </div>
@@ -727,10 +716,10 @@ export default function MessagingApp() {
                 </CardContent>
               </Card>
 
-              <div className="flex items-center gap-3 mt-4 p-3 bg-gray-800 rounded-xl shadow-md">
+              <div className="flex flex-wrap items-center gap-2 mt-4 p-3 bg-gray-800 rounded-xl shadow-md">
                 <Input
                   type="text"
-                  className="flex-1 bg-gray-700 border-gray-600 text-white rounded-full px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-grow min-w-[50%] bg-gray-700 border-gray-600 text-white rounded-full px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Type your message..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}

@@ -44,7 +44,7 @@ export default function Customise() {
             };
             setLoadingUser(true);
             try {
-                const res = await fetch(`${host}}/api/v1/me`, {
+                const res = await fetch(`${host}/api/v1/me`, {
                     headers: { authorization: `Bearer ${token}` },
                 });
                 const data = await res.json();
