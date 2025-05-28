@@ -1,6 +1,7 @@
 // Config
 
 require('dotenv').config();
+const { startOnlineUsersCleanup } = require('./utils/onlineUsers');
 
 // Express setup
 const express = require("express");
@@ -11,6 +12,9 @@ const cors = require("cors");
 app.use(cors());
 app.use(express.json());
 app.use("/assets", express.static(path.join(__dirname, "assets")));
+
+// Start the in-memory track of online users
+startOnlineUsersCleanup();
 
 // Router triggering
 const mainRouter = require("./routes/mainRouter");

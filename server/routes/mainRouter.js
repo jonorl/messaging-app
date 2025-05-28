@@ -7,9 +7,7 @@ const { authenticateToken } = require("../controllers/authentication");
 const { validateUser } = require("../controllers/formValidation");
 const multer = require("../controllers/multer");
 const generateGuestCredentials = require("../utils/generateGuestUser");
-
-//in-memory storage of online users
-const onlineUsers = new Map();
+const { onlineUsers } = require("../utils/onlineUsers")
 
 mainRouter.post("/api/v1/login", async (req, res) => {
   const { email, password } = req.body;
@@ -222,16 +220,5 @@ mainRouter.post("/api/v1/guest", validateUser, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
-
-// Clean up old entries (run every minute)
-setInterval(() => {
-  const now = Date.now();
-  for (const [userId, lastSeen] of onlineUsers.entries()) {
-    if (now - lastSeen > 60000) {
-      // 60 seconds timeout
-      onlineUsers.delete(userId);
-    }
-  }
-}, 60000);
 
 module.exports = mainRouter;
