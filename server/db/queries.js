@@ -32,9 +32,14 @@ async function readMessages(id) {
   }));
 }
 
-async function postMessages(senderId, text, receiverId, imageUrl=null) {
+async function postMessages(senderId, text, receiverId, imageUrl = null) {
   const message = await prisma.Message.create({
-    data: { senderId: senderId, text: text, receiverId: receiverId, imageUrl: imageUrl },
+    data: {
+      senderId: senderId,
+      text: text,
+      receiverId: receiverId,
+      imageUrl: imageUrl,
+    },
   });
   return message;
 }
@@ -134,6 +139,134 @@ async function deleteMe(id) {
   return user;
 }
 
+async function createGroup(name, memberIds) {
+  const group = await prisma.group.create({
+    data: {
+      name: name,
+      members: {
+        connect: memberIds.map((id) => ({ id })),
+      },
+    },
+    include: {
+      members: {
+        select: {
+          id: true,
+          name: true,
+          profilePicture: true,
+        },
+      },
+    },
+  });
+  return group;
+}
+
+// Get messages for a group
+async function getGroupMessages(groupId) {
+  const messages = await prisma.groupMessage.findMany({
+    where: {
+      groupId: groupId,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+    include: {
+      sender: {
+        select: {
+          id: true,
+          name: true,
+          profilePicture: true,
+        },
+      },
+    },
+  });
+
+  return messages.map((msg) => ({
+    id: msg.id,
+    text: msg.text,
+    image: msg.image,
+    createdAt: msg.createdAt,
+    senderId: msg.senderId,
+    groupId: msg.groupId,
+    sender: msg.sender,
+  }));
+}
+
+// Get all groups for a user
+async function getUserGroups(userId) {
+  const groups = await prisma.group.findMany({
+    where: {
+      members: {
+        some: {
+          id: userId,
+        },
+      },
+    },
+    include: {
+      members: {
+        select: {
+          id: true,
+          name: true,
+          profilePicture: true,
+        },
+      },
+      _count: {
+        select: {
+          messages: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+  return groups;
+}
+
+// Get a specific group with members
+async function getGroupWithMembers(groupId, userId) {
+  const group = await prisma.group.findFirst({
+    where: {
+      id: groupId,
+      members: {
+        some: {
+          id: userId,
+        },
+      },
+    },
+    include: {
+      members: {
+        select: {
+          id: true,
+          name: true,
+          profilePicture: true,
+        },
+      },
+    },
+  });
+  return group;
+}
+
+async function postGroupMessage(senderId, text, groupId, imageUrl = null) {
+  const message = await prisma.groupMessage.create({
+    data: {
+      senderId: senderId,
+      text: text,
+      groupId: groupId,
+      image: imageUrl
+    },
+    include: {
+      sender: {
+        select: {
+          id: true,
+          name: true,
+          profilePicture: true
+        }
+      }
+    }
+  });
+  return message;
+}
+
 module.exports = {
   readMessages,
   postMessages,
@@ -145,4 +278,9 @@ module.exports = {
   toggleFavourite,
   updateUser,
   deleteMe,
+  createGroup,
+  getGroupMessages,
+  getUserGroups,
+  getGroupWithMembers,
+  postGroupMessage,
 };

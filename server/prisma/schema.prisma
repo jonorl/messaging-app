@@ -8,22 +8,24 @@ datasource db {
 }
 
 model User {
-  id               String      @id @default(uuid())
-  email            String      @unique
+  id               String         @id @default(uuid())
+  email            String         @unique
   name             String
   passwordHash     String
   profilePicture   String?
-  createdAt        DateTime    @default(now())
-  sentMessages     Message[]   @relation("SentMessages")
-  receivedMessages Message[]   @relation("ReceivedMessages")
-  favouriteUser    Favourite[] @relation("FavouriteUser")
+  createdAt        DateTime       @default(now())
+  sentMessages     Message[]      @relation("SentMessages")
+  receivedMessages Message[]      @relation("ReceivedMessages")
+  favouriteUser    Favourite[]    @relation("FavouriteUser")
   Favourite        Favourite[]
+  groups           Group[]        @relation("GroupMembers")
+  groupMessages    GroupMessage[]
 }
 
 model Message {
   id         String   @id @default(uuid())
   text       String
-  imageUrl   String?  // 👈 New optional field
+  imageUrl   String?
   createdAt  DateTime @default(now())
   sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
   senderId   String
@@ -39,4 +41,23 @@ model Favourite {
   favouriteId   String
 
   @@unique([userId, favouriteId])
+}
+
+model Group {
+  id        String         @id @default(uuid())
+  name      String
+  members   User[]         @relation("GroupMembers")
+  messages  GroupMessage[]
+  createdAt DateTime       @default(now())
+}
+
+model GroupMessage {
+  id        String   @id @default(uuid())
+  text      String
+  sender    User     @relation(fields: [senderId], references: [id])
+  senderId  String
+  group     Group    @relation(fields: [groupId], references: [id])
+  groupId   String
+  image     String?
+  createdAt DateTime @default(now())
 }

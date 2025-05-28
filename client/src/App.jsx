@@ -24,8 +24,10 @@ export default function MessagingApp() {
   const [newMessage, setNewMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [contacts, setContacts] = useState([]);
+  const [groups, setGroups] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [selectedContactId, setSelectedContactId] = useState(null);
+  const [selectedGroupId, setSelectedGroupId] = useState(null);
   const [favourites, setFavourites] = useState({});
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
@@ -34,9 +36,8 @@ export default function MessagingApp() {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [imageFile, setImageFile] = useState(null);
   const messagesRef = useRef(messages);
-  const lastMessageRef = useRef(null); // Ref for the last message
-  const chatContainerRef = useRef(null); // Ref for the chat container
-
+  const lastMessageRef = useRef(null);
+  const chatContainerRef = useRef(null);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
@@ -44,16 +45,14 @@ export default function MessagingApp() {
   useEffect(() => {
     const scrollToBottom = () => {
       if (lastMessageRef.current) {
-        lastMessageRef.current.scrollIntoView({ behavior: "auto" }); // Changed to "auto" for instant scroll
+        lastMessageRef.current.scrollIntoView({ behavior: "auto" });
       } else if (chatContainerRef.current) {
         chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
       }
     };
-
-    // Use a slight delay to ensure DOM is updated
     const timer = setTimeout(scrollToBottom, 100);
     return () => clearTimeout(timer);
-  }, [messages, selectedContactId]); // Trigger on messages or selectedContactId change
+  }, [messages, selectedContactId, selectedGroupId]);
 
   useEffect(() => {
     const timer = setTimeout(() => setProgress(66), 500);
@@ -77,7 +76,7 @@ export default function MessagingApp() {
     };
 
     fetchOnlineUsers();
-    const interval = setInterval(fetchOnlineUsers, 10000); // every 10s
+    const interval = setInterval(fetchOnlineUsers, 10000);
     return () => clearInterval(interval);
   }, [token, user]);
 
@@ -91,7 +90,7 @@ export default function MessagingApp() {
           authorization: `Bearer ${token}`,
         },
       });
-    }, 30000); // Every 30 seconds
+    }, 30000);
 
     return () => clearInterval(intervalId);
   }, [token, user]);
@@ -117,7 +116,7 @@ export default function MessagingApp() {
     fetchUser();
   }, [token]);
 
-  // Fetch messages and contacts
+// Fetch messages, contacts, and groups
   useEffect(() => {
     if (!token || !user) {
       setLoadingMessages(false);
@@ -126,12 +125,13 @@ export default function MessagingApp() {
     }
     let isInitialLoad = true;
 
-    async function fetchMessages() {
+    async function fetchMessagesAndGroups() {
       if (isInitialLoad) {
         setLoadingMessages(true);
       }
 
       try {
+        // Fetch direct messages
         const messagesRes = await fetch("http://localhost:3000/api/v1/messages", {
           headers: {
             "Content-Type": "application/json",
@@ -140,10 +140,23 @@ export default function MessagingApp() {
         });
         const messagesData = await messagesRes.json();
 
+        // Fetch group messages if a group is selected
+        let groupMessages = [];
+        if (selectedGroupId) {
+          const groupMessagesRes = await fetch(`http://localhost:3000/api/v1/groups/${selectedGroupId}/messages`, {
+            headers: {
+              authorization: `Bearer ${token}`,
+            },
+          });
+          const groupMessagesData = await groupMessagesRes.json();
+          groupMessages = groupMessagesData.messages;
+        }
+
+        const allMessages = [...messagesData.messages, ...groupMessages];
         const stringify = JSON.stringify;
-        if (stringify(messagesData.messages) !== stringify(messagesRef.current)) {
-          setMessages(messagesData.messages);
-          messagesRef.current = messagesData.messages;
+        if (stringify(allMessages) !== stringify(messagesRef.current)) {
+          setMessages(allMessages);
+          messagesRef.current = allMessages;
 
           const contactMap = new Map();
           messagesData.messages.forEach((msg) => {
@@ -151,18 +164,25 @@ export default function MessagingApp() {
             const otherName = msg.senderId === user.id ? msg.receiver : msg.sender;
             if (!contactMap.has(otherId)) contactMap.set(otherId, otherName);
           });
-
           const newContacts = Array.from(contactMap.entries());
           setContacts(newContacts);
 
-          if (isInitialLoad && (!selectedContactId || newContacts.length === 0)) {
+          // Update selectedContactId only on initial load or if invalid
+          if (isInitialLoad && (!selectedContactId || !selectedGroupId)) {
             setSelectedContactId(newContacts[0]?.[0] || null);
-          } else if (selectedContactId && !contactMap.has(selectedContactId)) {
+          } else if (selectedContactId && !newContacts.some(([id]) => id === selectedContactId)) {
             setSelectedContactId(newContacts[0]?.[0] || null);
           }
         }
+
+        // Fetch groups
+        const groupsRes = await fetch("http://localhost:3000/api/v1/groups", {
+          headers: { authorization: `Bearer ${token}` },
+        });
+        const groupsData = await groupsRes.json();
+        setGroups(groupsData.groups);
       } catch (err) {
-        console.error("Error fetching messages:", err);
+        console.error("Error fetching messages or groups:", err);
       } finally {
         if (isInitialLoad) {
           setLoadingMessages(false);
@@ -171,10 +191,10 @@ export default function MessagingApp() {
       }
     }
 
-    fetchMessages();
-    const intervalId = setInterval(fetchMessages, 5000);
+    fetchMessagesAndGroups();
+    const intervalId = setInterval(fetchMessagesAndGroups, 5000);
     return () => clearInterval(intervalId);
-  }, [token, user, selectedContactId]);
+  }, [token, user, selectedContactId, selectedGroupId]);
 
   // Fetch favourites
   useEffect(() => {
@@ -217,31 +237,45 @@ export default function MessagingApp() {
   const sendMessage = async () => {
     if (newMessage.trim() === "" && !imageFile) return;
 
+    const formData = new FormData();
+    if (selectedGroupId) {
+      formData.append("text", newMessage);
+      formData.append("senderId", user.id);
+      formData.append("groupId", selectedGroupId);
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+    } else {
+      formData.append("senderId", user.id);
+      formData.append("receiverId", selectedContactId);
+      formData.append("text", newMessage);
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+    }
+
     setMessages([
       ...messages,
       {
         id: messages.length + 1,
         senderId: user.id,
-        receiverId: selectedContactId,
+        receiverId: selectedGroupId ? null : selectedContactId,
+        groupId: selectedGroupId,
         sender: "You",
         text: newMessage,
+        image: imageFile ? URL.createObjectURL(imageFile) : null,
         imageUrl: imageFile ? URL.createObjectURL(imageFile) : null,
       },
     ]);
-
-    const formData = new FormData();
-    formData.append("senderId", user.id);
-    formData.append("receiverId", selectedContactId);
-    formData.append("text", newMessage);
-    if (imageFile) {
-      formData.append("image", imageFile);
-    }
 
     setNewMessage("");
     setImageFile(null);
 
     try {
-      const response = await fetch("http://localhost:3000/api/v1/messages/", {
+      const endpoint = selectedGroupId
+        ? `http://localhost:3000/api/v1/groups/${selectedGroupId}/messages`
+        : "http://localhost:3000/api/v1/messages/";
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           authorization: `Bearer ${token}`,
@@ -256,10 +290,11 @@ export default function MessagingApp() {
     }
   };
 
-  const filteredMessages = messages.filter(
-    (msg) =>
-      (msg.senderId === user?.id && msg.receiverId === selectedContactId) ||
-      (msg.receiverId === user?.id && msg.senderId === selectedContactId)
+  const filteredMessages = messages.filter((msg) =>
+    selectedGroupId
+      ? msg.groupId === selectedGroupId
+      : (msg.senderId === user?.id && msg.receiverId === selectedContactId) ||
+        (msg.receiverId === user?.id && msg.senderId === selectedContactId)
   );
 
   const logout = () => {
@@ -370,11 +405,14 @@ export default function MessagingApp() {
                   return (
                     <li
                       key={id}
-                      className={`cursor-pointer flex items-center space-x-2 p-2 rounded-lg ${id === selectedContactId
+                      className={`cursor-pointer flex items-center space-x-2 p-2 rounded-lg ${id === selectedContactId && !selectedGroupId
                         ? "bg-blue-500 text-white"
                         : "hover:bg-gray-700"
                         }`}
-                      onClick={() => setSelectedContactId(id)}
+                      onClick={() => {
+                        setSelectedContactId(id);
+                        setSelectedGroupId(null);
+                      }}
                     >
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={contactUser?.profilePicture && `${host}${contactUser.profilePicture}`} alt={contactUser?.name} />
@@ -390,6 +428,35 @@ export default function MessagingApp() {
 
           {user && (
             <div>
+              <h2 className="text-lg font-semibold mb-2">Groups</h2>
+              <ul className="space-y-2">
+                {groups.map((group) => (
+                  <li
+                    key={group.id}
+                    className={`cursor-pointer flex items-center space-x-2 p-2 rounded-lg ${group.id === selectedGroupId
+                      ? "bg-blue-500 text-white"
+                      : "hover:bg-gray-700"
+                      }`}
+                    onClick={() => {
+                      setSelectedGroupId(group.id);
+                      setSelectedContactId(null);
+                    }}
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="text-gray-500">{group.name[0]}</AvatarFallback>
+                    </Avatar>
+                    <span>{group.name}</span>
+                  </li>
+                ))}
+                {groups.length === 0 && (
+                  <li className="text-gray-400 text-sm italic p-2">No groups yet</li>
+                )}
+              </ul>
+            </div>
+          )}
+
+          {user && (
+            <div>
               <h2 className="text-lg font-semibold mb-2">Favourites (see if online)</h2>
               <ul className="space-y-2">
                 {allUsers
@@ -398,7 +465,10 @@ export default function MessagingApp() {
                     <li
                       key={u.id}
                       className="flex justify-between items-center cursor-pointer hover:bg-gray-700 p-2 rounded-lg"
-                      onClick={() => setSelectedContactId(u.id)}
+                      onClick={() => {
+                        setSelectedContactId(u.id);
+                        setSelectedGroupId(null);
+                      }}
                     >
                       <div className="flex items-center gap-2">
                         <Avatar className="h-8 w-8">
@@ -442,7 +512,10 @@ export default function MessagingApp() {
                     <li
                       key={u.id}
                       className="flex justify-between items-center cursor-pointer hover:bg-gray-700 p-2 rounded-lg"
-                      onClick={() => setSelectedContactId(u.id)}
+                      onClick={() => {
+                        setSelectedContactId(u.id);
+                        setSelectedGroupId(null);
+                      }}
                     >
                       <div className="flex items-center gap-2">
                         <Avatar className="h-8 w-8">
@@ -485,7 +558,7 @@ export default function MessagingApp() {
                       <div
                         key={msg.id}
                         className={`flex items-start space-x-3 ${isCurrentUser ? "justify-end" : "justify-start"}`}
-                        ref={index === filteredMessages.length - 1 ? lastMessageRef : null} // Attach ref to last message
+                        ref={index === filteredMessages.length - 1 ? lastMessageRef : null}
                       >
                         {!isCurrentUser && (
                           <Avatar className="h-8 w-8 mt-1 flex-shrink-0">
@@ -504,15 +577,15 @@ export default function MessagingApp() {
                         )}
                         <div className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"} max-w-xs`}>
                           <p className="text-xs text-gray-400 mb-1 px-1">
-                            {msg.sender}
+                            {msg.sender?.name || msg.sender}
                           </p>
                           <div className={`px-4 py-3 rounded-2xl shadow-md relative ${isCurrentUser
                             ? "bg-blue-600 text-white rounded-br-md"
                             : "bg-gray-700 text-white rounded-bl-md"}`}>
                             {msg.text && <p className="break-words mb-2">{msg.text}</p>}
-                            {msg.imageUrl && (
+                            {(msg.image || msg.imageUrl) && (
                               <img
-                                src={`${host}${msg.imageUrl}`}
+                                src={`${host}${msg.image || msg.imageUrl}`}
                                 alt="attachment"
                                 className="max-w-xs rounded-md border border-gray-600"
                               />

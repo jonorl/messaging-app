@@ -239,4 +239,90 @@ mainRouter.post("/api/v1/guest", validateUser, async (req, res) => {
   }
 });
 
+// Create new group 
+mainRouter.post("/api/v1/groups", authenticateToken, async (req, res) => {
+  try {
+    const { name, memberIds } = req.body;
+    
+    if (!name || !memberIds || !Array.isArray(memberIds)) {
+      return res.status(400).json({ message: "Group name and member IDs are required" });
+    }
+
+    // Include the creator in the group
+    const allMemberIds = [...new Set([req.user.userId, ...memberIds])];
+
+    const newGroup = await db.createGroup(name, allMemberIds);
+    res.status(201).json({ group: newGroup });
+  } catch (err) {
+    console.error("Create group error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// get group messages
+mainRouter.get("/api/v1/groups/:groupId/messages", authenticateToken, async (req, res) => {
+  try {
+    const { groupId } = req.params;
+
+    const messages = await db.getGroupMessages(groupId);
+    res.json({ messages });
+  } catch (err) {
+    console.error("Get group messages error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get all groups for the authenticated user
+mainRouter.get("/api/v1/groups", authenticateToken, async (req, res) => {
+  try {
+    const groups = await db.getUserGroups(req.user.userId);
+    res.json({ groups });
+  } catch (err) {
+    console.error("Get groups error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get a specific group with its members
+mainRouter.get("/api/v1/groups/:groupId", authenticateToken, async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const group = await db.getGroupWithMembers(groupId, req.user.userId);
+    
+    if (!group) {
+      return res.status(404).json({ message: "Group not found or you're not a member" });
+    }
+
+    res.json({ group });
+  } catch (err) {
+    console.error("Get group error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+mainRouter.post("/api/v1/groups/:groupId/messages", 
+  authenticateToken, 
+  multer.single("image"), 
+  async (req, res) => {
+    try {
+      const { groupId } = req.params;
+      const { text } = req.body;
+      const senderId = req.user.userId;
+
+      // Check if user is a member of the group
+      const group = await db.getGroupWithMembers(groupId, senderId);
+      if (!group) {
+        return res.status(403).json({ message: "You are not a member of this group" });
+      }
+
+      const imageUrl = req.file ? `/assets/${req.file.filename}` : null;
+      const message = await db.postGroupMessage(senderId, text, groupId, imageUrl);
+      res.json({ message });
+    } catch (err) {
+      console.error("Send group message error:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+
 module.exports = mainRouter;
