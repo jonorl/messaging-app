@@ -74,6 +74,26 @@ export default function LoginPage() {
         navigate("/login");
     };
 
+        const handleGuestLogin = async () => {
+    try {
+      const res = await fetch('http://localhost:3000/api/v1/guest/', {
+        method: 'POST',
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userId', data.userId);
+        navigate('/');
+      } else {
+        console.error(data.error);
+      }
+    } catch (err) {
+      console.error('Guest login error:', err);
+    }
+  };
+
     return (
         <div className="flex flex-col h-screen bg-gray-900 text-white">
             {/* Header */}
@@ -94,7 +114,7 @@ export default function LoginPage() {
                         </div>
                     ) : !user ? (
                         <>
-                            <Link to="/guest"><Button className="hover:bg-gray-700">Guest login</Button></Link>
+                            <Button onClick={handleGuestLogin} className="hover:bg-gray-700">Guest login</Button>
                             <Link to="/signup"><Button className="hover:bg-gray-700">Sign Up</Button></Link>
                             <Link to="/login"><Button className="hover:bg-gray-700">Login</Button></Link>
                         </>
