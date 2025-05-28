@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress"
+import { Progress } from "@/components/ui/progress";
 import { Paperclip } from "lucide-react";
 
 const host = import.meta.env.VITE_LOCALHOST;
@@ -30,18 +30,26 @@ export default function MessagingApp() {
   const [user, setUser] = useState(null);
   const [loadingUser, setLoadingUser] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(true);
-  const [progress, setProgress] = useState(13)
+  const [progress, setProgress] = useState(13);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [imageFile, setImageFile] = useState(null);
   const messagesRef = useRef(messages);
+  const lastMessageRef = useRef(null); // Ref for the last message
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
+  // Auto-scroll to the last message when filteredMessages changes
   useEffect(() => {
-    const timer = setTimeout(() => setProgress(66), 500)
-    return () => clearTimeout(timer)
-  }, [])
+    if (lastMessageRef.current) {
+      lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]); // Depend on messages to trigger scroll on new messages
+
+  useEffect(() => {
+    const timer = setTimeout(() => setProgress(66), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Tell backend I'm online
   useEffect(() => {
@@ -67,8 +75,6 @@ export default function MessagingApp() {
   useEffect(() => {
     if (!token || !user) return;
 
-    // Show online users
-
     const intervalId = setInterval(() => {
       fetch("http://localhost:3000/api/v1/heartbeat", {
         method: "POST",
@@ -81,7 +87,7 @@ export default function MessagingApp() {
     return () => clearInterval(intervalId);
   }, [token, user]);
 
-  // useEffect hook for getting user data
+  // Fetch user data
   useEffect(() => {
     async function fetchUser() {
       if (!token) return;
@@ -102,18 +108,16 @@ export default function MessagingApp() {
     fetchUser();
   }, [token]);
 
-  // useEffect for Messages and Contacts
+  // Fetch messages and contacts
   useEffect(() => {
     if (!token || !user) {
       setLoadingMessages(false);
       setLoadingUser(false);
-
       return;
     }
     let isInitialLoad = true;
 
     async function fetchMessages() {
-      // Only show loading on initial load, not on polling
       if (isInitialLoad) {
         setLoadingMessages(true);
       }
@@ -132,7 +136,6 @@ export default function MessagingApp() {
           setMessages(messagesData.messages);
           messagesRef.current = messagesData.messages;
 
-          // Only rebuild contacts if messages changed
           const contactMap = new Map();
           messagesData.messages.forEach((msg) => {
             const otherId = msg.senderId === user.id ? msg.receiverId : msg.senderId;
@@ -140,10 +143,13 @@ export default function MessagingApp() {
             if (!contactMap.has(otherId)) contactMap.set(otherId, otherName);
           });
 
-          setContacts(Array.from(contactMap.entries()));
+          const newContacts = Array.from(contactMap.entries());
+          setContacts(newContacts);
 
-          if (Array.from(contactMap.keys()).length > 0) {
-            setSelectedContactId(Array.from(contactMap.keys())[0]);
+          if (isInitialLoad && (!selectedContactId || newContacts.length === 0)) {
+            setSelectedContactId(newContacts[0]?.[0] || null);
+          } else if (selectedContactId && !contactMap.has(selectedContactId)) {
+            setSelectedContactId(newContacts[0]?.[0] || null);
           }
         }
       } catch (err) {
@@ -159,9 +165,9 @@ export default function MessagingApp() {
     fetchMessages();
     const intervalId = setInterval(fetchMessages, 5000);
     return () => clearInterval(intervalId);
-  }, [token, user]);
+  }, [token, user, selectedContactId]);
 
-  // useEffect for Favourites
+  // Fetch favourites
   useEffect(() => {
     if (!token) return;
 
@@ -171,7 +177,6 @@ export default function MessagingApp() {
           headers: { authorization: `Bearer ${token}` },
         });
         const favouritesData = await favouritesRes.json();
-        console.log("Favorites data:", favouritesData);
         setFavourites(favouritesData.favouriteIdsMap || {});
       } catch (err) {
         console.error("Error fetching favourites:", err);
@@ -181,7 +186,7 @@ export default function MessagingApp() {
     fetchFavourites();
   }, [token]);
 
-  // useEffect for Users
+  // Fetch users
   useEffect(() => {
     if (!token) return;
 
@@ -203,7 +208,6 @@ export default function MessagingApp() {
   const sendMessage = async () => {
     if (newMessage.trim() === "" && !imageFile) return;
 
-    // Optimistic UI update
     setMessages([
       ...messages,
       {
@@ -256,7 +260,6 @@ export default function MessagingApp() {
   };
 
   const toggleFavourite = async (userId) => {
-    // Optimistically update the UI
     setFavourites((prev) => ({
       ...prev,
       [userId]: !prev[userId],
@@ -277,7 +280,6 @@ export default function MessagingApp() {
       console.log("Favourite toggle result:", result);
     } catch (error) {
       console.error("Failed to toggle favourite:", error);
-      // Revert the optimistic update on error
       setFavourites((prev) => ({
         ...prev,
         [userId]: !prev[userId],
@@ -350,7 +352,6 @@ export default function MessagingApp() {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <aside className="w-64 bg-gray-800 p-4 overflow-y-auto border-r border-gray-700 space-y-6">
-          {/* Conversations */}
           {user && (
             <div>
               <h2 className="text-lg font-semibold mb-2">Conversations</h2>
@@ -378,7 +379,6 @@ export default function MessagingApp() {
             </div>
           )}
 
-          {/* Favourites */}
           {user && (
             <div>
               <h2 className="text-lg font-semibold mb-2">Favourites (see if online)</h2>
@@ -399,11 +399,9 @@ export default function MessagingApp() {
                         <span>{u.name}</span>
                       </div>
                       <div className="flex justify-end items-center">
-                        {console.log(onlineUsers)}
                         {onlineUsers.includes(u.id) && (
                           <span
-                            className={`w-2.5 h-2.5 rounded-full mr-2 ${onlineUsers.includes(u.id) ? "bg-green-500" : "bg-red-500"
-                              }`}
+                            className={`w-2.5 h-2.5 rounded-full mr-2 ${onlineUsers.includes(u.id) ? "bg-green-500" : "bg-red-500"}`}
                           />
                         )}
                         <button
@@ -425,13 +423,12 @@ export default function MessagingApp() {
             </div>
           )}
 
-          {/* All Users */}
           {user && (
             <div>
               <h2 className="text-lg font-semibold mb-2">All Users</h2>
               <ul className="space-y-2">
                 {allUsers
-                  .filter((u) => u.id !== user.id) // Don't show the current user
+                  .filter((u) => u.id !== user.id)
                   .map((u) => (
                     <li
                       key={u.id}
@@ -462,7 +459,7 @@ export default function MessagingApp() {
         </aside>
 
         {/* Chat area */}
-        <main className="flex flex-col flex-1 p-4 ">
+        <main className="flex flex-col flex-1 p-4">
           {loadingMessages ? (
             <div className="flex flex-col justify-center items-center flex-1">
               <div className="text-gray-400 text-lg animate-pulse mb-8">Loading messages...</div>
@@ -472,14 +469,14 @@ export default function MessagingApp() {
             <>
               <Card className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-800 text-white shadow-md rounded-2xl">
                 <CardContent className="space-y-4">
-                  {filteredMessages.map((msg) => {
+                  {filteredMessages.map((msg, index) => {
                     const isCurrentUser = msg.senderId === user.id;
                     const senderUser = allUsers.find((u) => u.id === msg.senderId);
                     return (
                       <div
                         key={msg.id}
-                        className={`flex items-start space-x-3 ${isCurrentUser ? "justify-end" : "justify-start"
-                          }`}
+                        className={`flex items-start space-x-3 ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                        ref={index === filteredMessages.length - 1 ? lastMessageRef : null} // Attach ref to last message
                       >
                         {!isCurrentUser && (
                           <Avatar className="h-8 w-8 mt-1 flex-shrink-0">
@@ -496,7 +493,6 @@ export default function MessagingApp() {
                             </AvatarFallback>
                           </Avatar>
                         )}
-
                         <div className={`flex flex-col ${isCurrentUser ? "items-end" : "items-start"} max-w-xs`}>
                           <p className="text-xs text-gray-400 mb-1 px-1">
                             {msg.sender}
@@ -504,10 +500,10 @@ export default function MessagingApp() {
                           <div className={`px-4 py-3 rounded-2xl shadow-md relative ${isCurrentUser
                             ? "bg-blue-600 text-white rounded-br-md"
                             : "bg-gray-700 text-white rounded-bl-md"}`}>
-                            {msg.text && <p className="break-words mb-2">{msg.text}</p>}{console.log(msg)}
+                            {msg.text && <p className="break-words mb-2">{msg.text}</p>}
                             {msg.imageUrl && (
                               <img
-                                src={`${host}${msg.imageUrl}`} // or just msg.imageUrl if you're not serving from host
+                                src={`${host}${msg.imageUrl}`}
                                 alt="attachment"
                                 className="max-w-xs rounded-md border border-gray-600"
                               />
@@ -520,8 +516,6 @@ export default function MessagingApp() {
                           </div>
                         </div>
                         {isCurrentUser && (
-
-
                           <Avatar className="h-8 w-8 mt-1 flex-shrink-0">
                             <AvatarImage
                               src={
@@ -540,7 +534,6 @@ export default function MessagingApp() {
                 </CardContent>
               </Card>
 
-              {/* Message Input */}
               <div className="flex items-center gap-3 mt-4 p-3 bg-gray-800 rounded-xl shadow-md">
                 <Input
                   type="text"
@@ -550,8 +543,6 @@ export default function MessagingApp() {
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                 />
-
-                {/* Hidden file input and clickable icon */}
                 <div className="relative">
                   <input
                     type="file"
@@ -567,11 +558,8 @@ export default function MessagingApp() {
                         {imageFile.name}
                       </span>
                     )}
-
                   </label>
-
                 </div>
-
                 <Button
                   className="hover:bg-blue-700 bg-blue-600 rounded-full px-6 py-2 transition-colors duration-200"
                   onClick={sendMessage}
@@ -588,7 +576,6 @@ export default function MessagingApp() {
         </main>
       </div>
 
-      {/* Footer */}
       <footer className="bg-gray-800 shadow-inner p-4 text-center text-sm text-gray-400">
         Messaging App © 2025
       </footer>

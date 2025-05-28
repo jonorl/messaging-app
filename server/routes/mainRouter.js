@@ -3,11 +3,12 @@ const mainRouter = Router();
 const db = require("../db/queries");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { authenticateToken } = require("../controllers/authentication");
-const { validateUser } = require("../controllers/formValidation");
 const multer = require("../controllers/multer");
+const { onlineUsers } = require("../utils/onlineUsers");
+const { validateUser } = require("../controllers/formValidation");
+const { authenticateToken } = require("../controllers/authentication");
 const generateGuestCredentials = require("../utils/generateGuestUser");
-const { onlineUsers } = require("../utils/onlineUsers")
+const generateRobotReply = require("../utils/robotReply")
 
 mainRouter.post("/api/v1/login", async (req, res) => {
   const { email, password } = req.body;
@@ -64,7 +65,18 @@ mainRouter.post(
         imageUrl
       );
 
-      console.log("posted message:", postedMessage);
+      const robot = await db.getUser("robot@messaging.com");
+      if (receiverId == robot.id) {
+        setTimeout(async () => {
+          await db.postMessages(
+            robot.id,
+            generateRobotReply(text),
+            senderId,
+            null
+          );
+        }, 1000); // simulate delay
+      }
+
       res.json({ postedMessage });
     } catch (err) {
       console.error(err);
