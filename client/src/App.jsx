@@ -35,16 +35,25 @@ export default function MessagingApp() {
   const [imageFile, setImageFile] = useState(null);
   const messagesRef = useRef(messages);
   const lastMessageRef = useRef(null); // Ref for the last message
+  const chatContainerRef = useRef(null); // Ref for the chat container
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
-  // Auto-scroll to the last message when filteredMessages changes
+  // Auto-scroll to the last message or bottom of container
   useEffect(() => {
-    if (lastMessageRef.current) {
-      lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages]); // Depend on messages to trigger scroll on new messages
+    const scrollToBottom = () => {
+      if (lastMessageRef.current) {
+        lastMessageRef.current.scrollIntoView({ behavior: "auto" }); // Changed to "auto" for instant scroll
+      } else if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+      }
+    };
+
+    // Use a slight delay to ensure DOM is updated
+    const timer = setTimeout(scrollToBottom, 100);
+    return () => clearTimeout(timer);
+  }, [messages, selectedContactId]); // Trigger on messages or selectedContactId change
 
   useEffect(() => {
     const timer = setTimeout(() => setProgress(66), 500);
@@ -467,7 +476,7 @@ export default function MessagingApp() {
             </div>
           ) : user ? (
             <>
-              <Card className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-800 text-white shadow-md rounded-2xl">
+              <Card className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-800 text-white shadow-md rounded-2xl" ref={chatContainerRef}>
                 <CardContent className="space-y-4">
                   {filteredMessages.map((msg, index) => {
                     const isCurrentUser = msg.senderId === user.id;
