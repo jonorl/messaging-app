@@ -957,13 +957,13 @@ export default function MessagingApp() {
               <div className="flex items-center gap-2 mt-4 p-3 bg-gray-800 rounded-xl shadow-md overflow-x-auto">
                 <Input
                   type="text"
-                  className="flex-grow min-w-[50%] bg-gray-700 border-gray-600 text-white rounded-full px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-grow min-w-[40%] bg-gray-700 border-gray-600 text-white rounded-full px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Type your message..."
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && sendMessage()}
                 />
-                <div className="relative">
+                <div className="relative flex items-center">
                   <input
                     type="file"
                     accept="image/*"
@@ -971,17 +971,17 @@ export default function MessagingApp() {
                     onChange={(e) => setImageFile(e.target.files[0])}
                     className="hidden"
                   />
-                  <label htmlFor="file-upload" className="flex flex-1 cursor-pointer">
+                  <label htmlFor="file-upload" className="flex cursor-pointer items-center">
                     <Paperclip className="text-gray-300 hover:text-white w-5 h-5" />
                     {imageFile && (
-                      <span className="text-sm text-gray-400 ml-2 truncate max-w-[100px]">
+                      <span className="text-sm text-gray-400 ml-2 truncate max-w-[60px]">
                         {imageFile.name}
                       </span>
                     )}
                   </label>
                 </div>
                 <Button
-                  className="hover:bg-blue-700 bg-blue-600 rounded-full px-6 py-2 transition-colors duration-200"
+                  className="flex-shrink-0 hover:bg-blue-700 bg-blue-600 rounded-full px-4 py-2 transition-colors duration-200"
                   onClick={sendMessage}
                 >
                   Send
