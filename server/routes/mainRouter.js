@@ -1,14 +1,97 @@
+// Express set-up
 const { Router } = require("express");
 const mainRouter = Router();
+
+// Import database queries
 const db = require("../db/queries");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
+
+// Import Controllers/Middleware
 const multer = require("../controllers/multer");
-const { onlineUsers } = require("../utils/onlineUsers");
 const { validateUser } = require("../controllers/formValidation");
 const { authenticateToken } = require("../controllers/authentication");
+
+// Import Utils
+const { onlineUsers } = require("../utils/onlineUsers");
 const generateGuestCredentials = require("../utils/generateGuestUser");
 const generateRobotReply = require("../utils/robotReply")
+
+// Import other helper libs
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
+// GET routes
+
+mainRouter.get("/api/v1/messages/", authenticateToken, async (req, res) => {
+  const messages = await db.readMessages(req.user.userId);
+  res.json({ messages });
+});
+
+mainRouter.get("/api/v1/users", async (req, res) => {
+  try {
+    const users = await db.getAllUsers();
+    res.json({ users });
+  } catch (err) {
+    console.error("Failed to get users:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+mainRouter.get("/api/v1/me", authenticateToken, async (req, res) => {
+  try {
+    const user = await db.getMe(req.user);
+    res.json({ user });
+  } catch (err) {
+    console.error("Failed to get user:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+mainRouter.get("/api/v1/online", authenticateToken, (req, res) => {
+  res.json({ online: Array.from(onlineUsers.keys()) });
+});
+
+// get group messages
+mainRouter.get("/api/v1/groups/:groupId/messages", authenticateToken, async (req, res) => {
+  try {
+    const { groupId } = req.params;
+
+    const messages = await db.getGroupMessages(groupId);
+    res.json({ messages });
+  } catch (err) {
+    console.error("Get group messages error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get all groups for the authenticated user
+mainRouter.get("/api/v1/groups", authenticateToken, async (req, res) => {
+  try {
+    const groups = await db.getUserGroups(req.user.userId);
+    res.json({ groups });
+  } catch (err) {
+    console.error("Get groups error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Get a specific group with its members
+mainRouter.get("/api/v1/groups/:groupId", authenticateToken, async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const group = await db.getGroupWithMembers(groupId, req.user.userId);
+    
+    if (!group) {
+      return res.status(404).json({ message: "Group not found or you're not a member" });
+    }
+
+    res.json({ group });
+  } catch (err) {
+    console.error("Get group error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// POST routes
 
 mainRouter.post("/api/v1/login", async (req, res) => {
   const { email, password } = req.body;
@@ -39,11 +122,6 @@ mainRouter.post("/api/v1/login", async (req, res) => {
   }
 });
 
-mainRouter.get("/api/v1/messages/", authenticateToken, async (req, res) => {
-  const messages = await db.readMessages(req.user.userId);
-  res.json({ messages });
-});
-
 mainRouter.post(
   "/api/v1/messages/",
   authenticateToken,
@@ -65,6 +143,7 @@ mainRouter.post(
         imageUrl
       );
 
+      // This is for the robot user (hardcoded robot's email)
       const robot = await db.getUser("robot@messaging.com");
       if (receiverId == robot.id) {
         setTimeout(async () => {
@@ -84,6 +163,7 @@ mainRouter.post(
     }
   }
 );
+
 mainRouter.post("/api/v1/signup/", validateUser, async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -101,8 +181,8 @@ mainRouter.post("/api/v1/signup/", validateUser, async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    // Make it favourite the robot by default (hardcoded)
-    await db.toggleFavourite(newUser.id, "8d7118e1-0f6c-466c-9c17-e7c8bc42af8e")
+    // Make it favourite the robot by default
+    await db.toggleFavourite(newUser.id, process.env.ROBOT)
 
     res.status(201).json({ token });
   } catch (err) {
@@ -115,25 +195,6 @@ mainRouter.post("/api/v1/logout", (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 });
 
-mainRouter.get("/api/v1/users", async (req, res) => {
-  try {
-    const users = await db.getAllUsers();
-    res.json({ users });
-  } catch (err) {
-    console.error("Failed to get users:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-mainRouter.get("/api/v1/me", authenticateToken, async (req, res) => {
-  try {
-    const user = await db.getMe(req.user);
-    res.json({ user });
-  } catch (err) {
-    console.error("Failed to get user:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
 
 mainRouter.post("/api/v1/favourite", authenticateToken, async (req, res) => {
   try {
@@ -162,52 +223,10 @@ mainRouter.get("/api/v1/favourite", authenticateToken, async (req, res) => {
   }
 });
 
-mainRouter.put(
-  "/api/v1/users",
-  authenticateToken,
-  multer.single("avatar"),
-  async (req, res) => {
-    try {
-      const avatar = req.file ? `/assets/${req.file.filename}` : undefined;
-      const user = await db.updateUser(
-        req.user.userId,
-        req.body.name,
-        req.body.email,
-        avatar
-      );
-      res.json({ user: { ...user, avatarUrl: user.profilePicture } });
-    } catch (err) {
-      console.error("Failed to get user:", err);
-      res.status(500).json({ message: "Server error" });
-    }
-  }
-);
-
 mainRouter.post("/api/v1/heartbeat", authenticateToken, (req, res) => {
   const userId = req.user.userId;
   onlineUsers.set(userId, Date.now());
   res.sendStatus(200);
-});
-
-mainRouter.get("/api/v1/online", authenticateToken, (req, res) => {
-  res.json({ online: Array.from(onlineUsers.keys()) });
-});
-
-mainRouter.delete("/api/v1/me", authenticateToken, async (req, res) => {
-  try {
-    // Block deletion of guest user
-    if (req.user.email === "guest@messaging.com") {
-      return res.status(403).json({
-        message:
-          "The developer has blocked the guest account from being deleted.",
-      });
-    }
-    const user = await db.deleteMe(req.user.userId);
-    res.json({ user });
-  } catch (err) {
-    console.error("Failed to get user:", err);
-    res.status(500).json({ message: "Server error" });
-  }
 });
 
 mainRouter.post("/api/v1/guest", validateUser, async (req, res) => {
@@ -256,47 +275,6 @@ mainRouter.post("/api/v1/groups", authenticateToken, async (req, res) => {
   }
 });
 
-// get group messages
-mainRouter.get("/api/v1/groups/:groupId/messages", authenticateToken, async (req, res) => {
-  try {
-    const { groupId } = req.params;
-
-    const messages = await db.getGroupMessages(groupId);
-    res.json({ messages });
-  } catch (err) {
-    console.error("Get group messages error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// Get all groups for the authenticated user
-mainRouter.get("/api/v1/groups", authenticateToken, async (req, res) => {
-  try {
-    const groups = await db.getUserGroups(req.user.userId);
-    res.json({ groups });
-  } catch (err) {
-    console.error("Get groups error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-// Get a specific group with its members
-mainRouter.get("/api/v1/groups/:groupId", authenticateToken, async (req, res) => {
-  try {
-    const { groupId } = req.params;
-    const group = await db.getGroupWithMembers(groupId, req.user.userId);
-    
-    if (!group) {
-      return res.status(404).json({ message: "Group not found or you're not a member" });
-    }
-
-    res.json({ group });
-  } catch (err) {
-    console.error("Get group error:", err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
 mainRouter.post("/api/v1/groups/:groupId/messages", 
   authenticateToken, 
   multer.single("image"), 
@@ -321,5 +299,48 @@ mainRouter.post("/api/v1/groups/:groupId/messages",
     }
   }
 );
+
+// PUT routes
+
+mainRouter.put(
+  "/api/v1/users",
+  authenticateToken,
+  multer.single("avatar"),
+  async (req, res) => {
+    try {
+      const avatar = req.file ? `/assets/${req.file.filename}` : undefined;
+      const user = await db.updateUser(
+        req.user.userId,
+        req.body.name,
+        req.body.email,
+        avatar
+      );
+      res.json({ user: { ...user, avatarUrl: user.profilePicture } });
+    } catch (err) {
+      console.error("Failed to get user:", err);
+      res.status(500).json({ message: "Server error" });
+    }
+  }
+);
+
+
+// DELETE routes
+
+mainRouter.delete("/api/v1/me", authenticateToken, async (req, res) => {
+  try {
+    // Block deletion of guest user
+    if (req.user.email === "guest@messaging.com") {
+      return res.status(403).json({
+        message:
+          "The developer has blocked the guest account from being deleted.",
+      });
+    }
+    const user = await db.deleteMe(req.user.userId);
+    res.json({ user });
+  } catch (err) {
+    console.error("Failed to get user:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 module.exports = mainRouter;

@@ -1,3 +1,5 @@
+// Helper function to keep track of online user in memory every minute.
+
 const onlineUsers = new Map([]);
 
 function startOnlineUsersCleanup(timeout = 60000) {

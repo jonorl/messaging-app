@@ -1,7 +1,6 @@
 // Config
 
 require('dotenv').config();
-const isProduction = process.env.NODE_ENV === 'production';
 
 const { startOnlineUsersCleanup } = require('./utils/onlineUsers');
 
@@ -9,8 +8,9 @@ const { startOnlineUsersCleanup } = require('./utils/onlineUsers');
 const express = require("express");
 const path = require('path')
 const app = express();
-const cors = require("cors");
 
+// CORS setup
+const cors = require("cors");
 app.use(cors());
 app.use(express.json());
 app.use("/assets", express.static(path.join(__dirname, "assets")));

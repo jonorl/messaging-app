@@ -1,3 +1,5 @@
+// Helper function for the robot to auto-reply
+
 function generateRobotReply(userMessage) {
   const lower = userMessage.toLowerCase();
   if (lower.includes("hello") || lower.includes("hi")) return "Hello human! 🤖";

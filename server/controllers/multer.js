@@ -1,3 +1,5 @@
+// Multer middleware to make it possible to attach files
+
 const multer = require("multer");
 const path = require("path");
 

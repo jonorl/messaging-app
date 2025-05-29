@@ -1,6 +1,6 @@
-const { body } = require("express-validator");
-
 // Form validator when creating a new user
+
+const { body } = require("express-validator");
 
 const alphaErr = "must only contain letters.";
 const lengthErr = "must be between 1 and 10 characters.";

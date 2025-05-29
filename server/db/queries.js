@@ -32,6 +32,7 @@ async function readMessages(id) {
   }));
 }
 
+// Create new message
 async function postMessages(senderId, text, receiverId, imageUrl = null) {
   const message = await prisma.Message.create({
     data: {
@@ -44,6 +45,7 @@ async function postMessages(senderId, text, receiverId, imageUrl = null) {
   return message;
 }
 
+// get specific-user data using email
 async function getUser(email) {
   const user = await prisma.user.findUnique({
     where: { email: email },
@@ -51,6 +53,7 @@ async function getUser(email) {
   return user;
 }
 
+// Create new user
 async function createUser(name, email, hashedPassword) {
   const newUser = await prisma.user.create({
     data: {
@@ -62,6 +65,7 @@ async function createUser(name, email, hashedPassword) {
   return newUser;
 }
 
+// get ALL the users data
 async function getAllUsers() {
   const users = await prisma.user.findMany({
     select: {
@@ -73,6 +77,7 @@ async function getAllUsers() {
   return users;
 }
 
+// get specific-user data using userId
 async function getMe(user) {
   const users = await prisma.user.findUnique({
     where: { id: user.userId },
@@ -80,6 +85,7 @@ async function getMe(user) {
   return users;
 }
 
+// Retrieve user's favourites
 async function userWithFavourites(userId) {
   const favourites = await prisma.favourite.findMany({
     where: { userId: userId },
@@ -87,6 +93,7 @@ async function userWithFavourites(userId) {
   return favourites;
 }
 
+// Add/remove user as favourite
 async function toggleFavourite(userId, favouriteId) {
   const existing = await prisma.favourite.findUnique({
     where: {
@@ -118,6 +125,7 @@ async function toggleFavourite(userId, favouriteId) {
   }
 }
 
+// Update user profile
 async function updateUser(id, name, email, profileURL) {
   const user = await prisma.user.update({
     where: {
@@ -132,6 +140,7 @@ async function updateUser(id, name, email, profileURL) {
   return user;
 }
 
+// Delete user
 async function deleteMe(id) {
   const user = await prisma.user.delete({
     where: { id: id },
@@ -139,6 +148,7 @@ async function deleteMe(id) {
   return user;
 }
 
+// Create new group
 async function createGroup(name, memberIds) {
   const group = await prisma.group.create({
     data: {

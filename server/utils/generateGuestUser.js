@@ -1,3 +1,5 @@
+// Helper function to create a generic "guest" user so that people don't have to sign up
+
 const crypto = require('crypto');
 
 function generateGuestCredentials() {
