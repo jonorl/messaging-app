@@ -45,7 +45,7 @@ export default function LoginPage() {
             }
         }
         fetchUser();
-    }, [token]);
+    }, [token, host]);
 
     const handleLogin = async () => {
         try {
