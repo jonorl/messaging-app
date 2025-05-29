@@ -398,17 +398,18 @@ export default function MessagingApp() {
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-white">
       {/* Header */}
-      <header className="bg-gray-800 shadow-md px-4 py-2 flex flex-wrap justify-between items-center gap-2 sm:gap-4">
+      <header className="bg-gray-800 shadow-md px-4 py-2 flex justify-between items-center gap-2 sm:gap-4 overflow-x-auto">
+
         <button
           className="md:hidden text-white focus:outline-none"
           onClick={() => setMobileSidebarOpen(true)}
         >
           ☰
         </button>
-        <Link to="/" className="text-xl font-bold cursor-pointer hover:text-blue-400">
+        <Link to="/" className="text-base sm:text-lg md:text-xl font-bold hover:text-blue-400 whitespace-nowrap">
           Messaging App
         </Link>
-        <div className="space-x-2 flex flex-wrap gap-2 items-center">
+        <div className=" flex gap-2 sm:gap-4 items-center">
           {loadingUser ? (
             <div className="flex items-center justify-center w-full space-x-4">
               <Progress value={progress} className="w-full max-w-xs h-2 bg-gray-300" />
@@ -425,7 +426,7 @@ export default function MessagingApp() {
           ) : (
             <>
               <Link to="/customise">
-                <Avatar className="h-8 w-8 mt-1 flex-shrink-0">
+                <Avatar className="h-6 w-6 sm:h-8 sm:w-8 mt-1 flex-shrink-0">
                   <AvatarImage
                     src={user.profilePicture ? `${host}${user.profilePicture}` : undefined}
                     alt={user.name}
@@ -434,9 +435,12 @@ export default function MessagingApp() {
                 </Avatar>
               </Link>
               <Link className="flex text-lg font-semibold items-center" to="/customise">
-                <h2 className="text-base sm:text-lg">Hello, {user.name}</h2>
+                <h2 className="text-sm sm:text-base truncate whitespace-nowrap max-w-[70px] sm:max-w-none">
+                  Hello, {user.name}
+                </h2>
+
               </Link>
-              <Button onClick={logout} className="hover:bg-gray-700">Logout</Button>
+              <Button onClick={logout} className="px-3 py-1 text-xs sm:text-sm hover:bg-gray-700">Logout</Button>
             </>
           )}
         </div>
@@ -766,7 +770,7 @@ export default function MessagingApp() {
                               key={u.id}
                               className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${selectedMembers.includes(u.id) ? "bg-blue-600" : "hover:bg-gray-700"
                                 }`}
-                              onClick={() => {toggleMember(u.id)}}
+                              onClick={() => { toggleMember(u.id) }}
                             >
                               <Avatar className="h-8 w-8">
                                 <AvatarImage src={`${host}${u.profilePicture}`} alt={u.name} />
