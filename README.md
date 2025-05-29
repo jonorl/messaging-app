@@ -1,4 +1,4 @@
-# 📝 Messaging app (Monorepo)
+# 📝 Messaging app (monorepo)
 
 A messaging application built with **Node.js**, **Express** and **PostgreSQL**. Developed as part of [The Odin Project's Node.js curriculum](https://www.theodinproject.com/lessons/nodejs-messaging-app), this app demonstrates full-stack capabilities including authentication, real-time communication, and structured database interactions via **Prisma ORM**.
 
@@ -24,7 +24,7 @@ A messaging application built with **Node.js**, **Express** and **PostgreSQL**. 
 - **dotenv**
 - **bcrypt/uuid**
 - **Multer middleware**
-- **JWT passwport strategy**
+- **JWT strategy**
 - **CORS**
 
 ### Frontend libraries
@@ -102,6 +102,9 @@ npm run dev
 # Initiate db
 npx prisma migrate dev --name init
 ```
+
+Client runs at: `http://localhost:5173`
+
 # Add Robot (optional, but good for testing)
 ```sql
 INSERT INTO "User" (
@@ -120,8 +123,6 @@ INSERT INTO "User" (
   NOW()
 );
 ```
-
-Client runs at: `http://localhost:5173`
 
 ### .env file (backend)
 ```bash
