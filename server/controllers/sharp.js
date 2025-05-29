@@ -1,7 +1,10 @@
 // Middleware to accept images max 640x480
 
 const sharp = require("sharp");
+const path = require("path");
+const fs = require("fs");
 
+// Middleware to accept images max 640x480
 const validateImageResolution = (req, res, next) => {
   if (!req.file) return next(); // nothing uploaded
 
