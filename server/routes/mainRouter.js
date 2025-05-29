@@ -14,8 +14,8 @@ const { authenticateToken } = require("../controllers/authentication");
 // Import Utils
 const { onlineUsers } = require("../utils/onlineUsers");
 const generateGuestCredentials = require("../utils/generateGuestUser");
-const generateRobotReply = require("../utils/robotReply")
-const formatBufferToDataUri = require("../utils/fileUpload")
+const generateRobotReply = require("../utils/robotReply");
+const formatBufferToDataUri = require("../utils/fileUpload");
 
 // Import other helper libs
 const bcrypt = require("bcrypt");
@@ -53,17 +53,21 @@ mainRouter.get("/api/v1/online", authenticateToken, (req, res) => {
 });
 
 // get group messages
-mainRouter.get("/api/v1/groups/:groupId/messages", authenticateToken, async (req, res) => {
-  try {
-    const { groupId } = req.params;
+mainRouter.get(
+  "/api/v1/groups/:groupId/messages",
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const { groupId } = req.params;
 
-    const messages = await db.getGroupMessages(groupId);
-    res.json({ messages });
-  } catch (err) {
-    console.error("Get group messages error:", err);
-    res.status(500).json({ message: "Server error" });
+      const messages = await db.getGroupMessages(groupId);
+      res.json({ messages });
+    } catch (err) {
+      console.error("Get group messages error:", err);
+      res.status(500).json({ message: "Server error" });
+    }
   }
-});
+);
 
 // Get all groups for the authenticated user
 mainRouter.get("/api/v1/groups", authenticateToken, async (req, res) => {
@@ -77,21 +81,27 @@ mainRouter.get("/api/v1/groups", authenticateToken, async (req, res) => {
 });
 
 // Get a specific group with its members
-mainRouter.get("/api/v1/groups/:groupId", authenticateToken, async (req, res) => {
-  try {
-    const { groupId } = req.params;
-    const group = await db.getGroupWithMembers(groupId, req.user.userId);
-    
-    if (!group) {
-      return res.status(404).json({ message: "Group not found or you're not a member" });
-    }
+mainRouter.get(
+  "/api/v1/groups/:groupId",
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const { groupId } = req.params;
+      const group = await db.getGroupWithMembers(groupId, req.user.userId);
 
-    res.json({ group });
-  } catch (err) {
-    console.error("Get group error:", err);
-    res.status(500).json({ message: "Server error" });
+      if (!group) {
+        return res
+          .status(404)
+          .json({ message: "Group not found or you're not a member" });
+      }
+
+      res.json({ group });
+    } catch (err) {
+      console.error("Get group error:", err);
+      res.status(500).json({ message: "Server error" });
+    }
   }
-});
+);
 
 // POST routes
 
@@ -191,7 +201,7 @@ mainRouter.post("/api/v1/signup/", validateUser, async (req, res) => {
     );
 
     // Make it favourite the robot by default
-    await db.toggleFavourite(newUser.id, process.env.ROBOT)
+    await db.toggleFavourite(newUser.id, process.env.ROBOT);
 
     res.status(201).json({ token });
   } catch (err) {
@@ -203,7 +213,6 @@ mainRouter.post("/api/v1/signup/", validateUser, async (req, res) => {
 mainRouter.post("/api/v1/logout", (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 });
-
 
 mainRouter.post("/api/v1/favourite", authenticateToken, async (req, res) => {
   try {
@@ -255,7 +264,7 @@ mainRouter.post("/api/v1/guest", validateUser, async (req, res) => {
     );
 
     // Make it favourite the robot by default (hardcoded)
-    await db.toggleFavourite(newUser.id, process.env.ROBOT)
+    await db.toggleFavourite(newUser.id, process.env.ROBOT);
 
     res.status(201).json({ token });
   } catch (err) {
@@ -264,13 +273,15 @@ mainRouter.post("/api/v1/guest", validateUser, async (req, res) => {
   }
 });
 
-// Create new group 
+// Create new group
 mainRouter.post("/api/v1/groups", authenticateToken, async (req, res) => {
   try {
     const { name, memberIds } = req.body;
-    
+
     if (!name || !memberIds || !Array.isArray(memberIds)) {
-      return res.status(400).json({ message: "Group name and member IDs are required" });
+      return res
+        .status(400)
+        .json({ message: "Group name and member IDs are required" });
     }
 
     // Include the creator in the group
@@ -284,9 +295,10 @@ mainRouter.post("/api/v1/groups", authenticateToken, async (req, res) => {
   }
 });
 
-mainRouter.post("/api/v1/groups/:groupId/messages", 
-  authenticateToken, 
-  multer.single("image"), 
+mainRouter.post(
+  "/api/v1/groups/:groupId/messages",
+  authenticateToken,
+  multer.single("image"),
   async (req, res) => {
     try {
       const { groupId } = req.params;
@@ -296,11 +308,26 @@ mainRouter.post("/api/v1/groups/:groupId/messages",
       // Check if user is a member of the group
       const group = await db.getGroupWithMembers(groupId, senderId);
       if (!group) {
-        return res.status(403).json({ message: "You are not a member of this group" });
+        return res
+          .status(403)
+          .json({ message: "You are not a member of this group" });
       }
 
-      const imageUrl = req.file ? `/assets/${req.file.filename}` : null;
-      const message = await db.postGroupMessage(senderId, text, groupId, imageUrl);
+      let imageUrl = null;
+
+      if (req.file) {
+        const file = formatBufferToDataUri(req.file);
+        const result = await cloudinary.uploader.upload(file.content, {
+          folder: "messaging-app/group-messages",
+        });
+        imageUrl = result.secure_url;
+      }
+      const message = await db.postGroupMessage(
+        senderId,
+        text,
+        groupId,
+        imageUrl
+      );
       res.json({ message });
     } catch (err) {
       console.error("Send group message error:", err);
@@ -317,7 +344,18 @@ mainRouter.put(
   multer.single("avatar"),
   async (req, res) => {
     try {
-      const avatar = req.file ? `/assets/${req.file.filename}` : undefined;
+      let avatar;
+
+      if (req.file) {
+        const file = formatBufferToDataUri(req.file);
+        const result = await cloudinary.uploader.upload(file.content, {
+          folder: "messaging-app/avatars",
+          transformation: [
+            { width: 300, height: 300, crop: "thumb", gravity: "face" },
+          ],
+        });
+        avatar = result.secure_url;
+      }
       const user = await db.updateUser(
         req.user.userId,
         req.body.name,
@@ -331,7 +369,6 @@ mainRouter.put(
     }
   }
 );
-
 
 // DELETE routes
 
