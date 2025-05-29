@@ -75,7 +75,7 @@ export default function SignupPage() {
     navigate("/login");
   };
 
-    const handleGuestLogin = async () => {
+  const handleGuestLogin = async () => {
     try {
       const res = await fetch(`${host}/api/v1/guest/`, {
         method: 'POST',
@@ -97,39 +97,44 @@ export default function SignupPage() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-white">
-      <header className="bg-gray-800 shadow-md p-4 flex justify-between items-center">
-        <Link to="/" className="text-xl font-bold cursor-pointer hover:text-blue-400">
+      {/* Header */}
+      <header className="bg-gray-800 shadow-md px-4 py-2 flex justify-between items-center gap-2 sm:gap-4 overflow-x-auto">
+
+        <Link to="/" className="text-base sm:text-lg md:text-xl font-bold hover:text-blue-400 whitespace-nowrap">
           Messaging App
         </Link>
-        <div className="space-x-2 flex">
+        <div className=" flex gap-2 sm:gap-4 items-center">
           {loadingUser ? (
             <div className="flex items-center justify-center w-full space-x-4">
-              <Progress
-                value={progress}
-                className="w-48 h-2 bg-gray-300"
-              />
+              <Progress value={progress} className="w-full max-w-xs h-2 bg-gray-300" />
               <span className="text-sm font-medium text-white whitespace-nowrap">
                 Loading user...
               </span>
             </div>
           ) : !user ? (
             <>
-              <Button onClick={handleGuestLogin} className="hover:bg-gray-700">Guest login</Button>
-              <Link to="/signup"><Button className="hover:bg-gray-700">Sign Up</Button></Link>
-              <Link to="/login"><Button className="hover:bg-gray-700">Login</Button></Link>
+              <Button onClick={handleGuestLogin} className="px-2 sm:px-3 py-1 text-xs sm:text-sx hover:bg-gray-700">Guest login</Button>
+              <Link to="/signup"><Button className="px-2 sm:px-3 py-1 text-xs sm:text-sm hover:bg-gray-700">Sign Up</Button></Link>
+              <Link to="/login"><Button className="px-2 sm:px-3 py-1 text-xs sm:text-sm hover:bg-gray-700">Login</Button></Link>
             </>
           ) : (
             <>
-              <Link to="/customise"><Avatar className="h-8 w-8 mt-1 flex-shrink-0">
-                <AvatarImage
-                  src={user.profilePicture ? `${host}${user.profilePicture}` : undefined}
-                  alt={user.name}
-                />
-                <AvatarFallback className="text-gray-500">{user.name?.[0]}</AvatarFallback>
-              </Avatar>
+              <Link to="/customise">
+                <Avatar className="h-6 w-6 sm:h-8 sm:w-8 mt-1 flex-shrink-0">
+                  <AvatarImage
+                    src={user.profilePicture ? `${host}${user.profilePicture}` : undefined}
+                    alt={user.name}
+                  />
+                  <AvatarFallback className="text-gray-500">{user.name?.[0]}</AvatarFallback>
+                </Avatar>
               </Link>
-              <Link className="flex text-lg font-semibold items-center" to="/customise"><h2>Hello, {user.name}</h2></Link>
-              <Button onClick={logout} className="hover:bg-gray-700">Logout</Button>
+              <Link className="flex text-lg font-semibold items-center" to="/customise">
+                <h2 className="text-sm sm:text-base truncate whitespace-nowrap max-w-[70px] sm:max-w-none">
+                  Hello, {user.name}
+                </h2>
+
+              </Link>
+              <Button onClick={logout} className="px-3 py-1 text-xs sm:text-sm hover:bg-gray-700">Logout</Button>
             </>
           )}
         </div>
@@ -180,7 +185,7 @@ export default function SignupPage() {
       </main>
 
       <footer className="bg-gray-800 shadow-inner p-4 text-center text-sm text-gray-400">
-        Messaging App © 2025
+        Messaging App © 2025 / jonorl@gmail.com
       </footer>
     </div>
   );

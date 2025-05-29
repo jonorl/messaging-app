@@ -997,7 +997,7 @@ export default function MessagingApp() {
       </div>
 
       <footer className="bg-gray-800 shadow-inner p-4 text-center text-sm text-gray-400">
-        Messaging App © 2025
+        Messaging App © 2025 / jonorl@gmail.com
       </footer>
     </div>
   );
