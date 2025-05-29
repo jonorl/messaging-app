@@ -9,7 +9,6 @@ const db = require("../db/queries");
 const multer = require("../controllers/multer");
 const { validateUser } = require("../controllers/formValidation");
 const { authenticateToken } = require("../controllers/authentication");
-const { validateImageResolution } = require("../controllers/sharp");
 
 // Import Utils
 const { onlineUsers } = require("../utils/onlineUsers");
@@ -127,7 +126,6 @@ mainRouter.post(
   "/api/v1/messages/",
   authenticateToken,
   multer.single("image"),
-  validateImageResolution,
   async (req, res) => {
     try {
       const senderId = req.body.senderId;
@@ -280,7 +278,6 @@ mainRouter.post("/api/v1/groups", authenticateToken, async (req, res) => {
 mainRouter.post("/api/v1/groups/:groupId/messages", 
   authenticateToken, 
   multer.single("image"), 
-  validateImageResolution,
   async (req, res) => {
     try {
       const { groupId } = req.params;
@@ -309,7 +306,6 @@ mainRouter.put(
   "/api/v1/users",
   authenticateToken,
   multer.single("avatar"),
-  validateImageResolution,
   async (req, res) => {
     try {
       const avatar = req.file ? `/assets/${req.file.filename}` : undefined;
