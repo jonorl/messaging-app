@@ -419,9 +419,9 @@ export default function MessagingApp() {
             </div>
           ) : !user ? (
             <>
-              <Button onClick={handleGuestLogin} className="hover:bg-gray-700">Guest login</Button>
-              <Link to="/signup"><Button className="hover:bg-gray-700">Sign Up</Button></Link>
-              <Link to="/login"><Button className="hover:bg-gray-700">Login</Button></Link>
+              <Button onClick={handleGuestLogin} className="px-2 sm:px-3 py-1 text-xs sm:text-sx hover:bg-gray-700">Guest login</Button>
+              <Link to="/signup"><Button className="px-2 sm:px-3 py-1 text-xs sm:text-sm hover:bg-gray-700">Sign Up</Button></Link>
+              <Link to="/login"><Button className="px-2 sm:px-3 py-1 text-xs sm:text-sm hover:bg-gray-700">Login</Button></Link>
             </>
           ) : (
             <>
