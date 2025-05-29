@@ -40,6 +40,7 @@ export default function MessagingApp() {
   const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [selectedMembers, setSelectedMembers] = useState([]);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const messagesRef = useRef(messages);
   const lastMessageRef = useRef(null);
   const chatContainerRef = useRef(null);
@@ -398,6 +399,12 @@ export default function MessagingApp() {
     <div className="flex flex-col h-screen bg-gray-900 text-white">
       {/* Header */}
       <header className="bg-gray-800 shadow-md px-4 py-2 flex flex-wrap justify-between items-center gap-2 sm:gap-4">
+        <button
+          className="md:hidden text-white focus:outline-none"
+          onClick={() => setMobileSidebarOpen(true)}
+        >
+          ☰
+        </button>
         <Link to="/" className="text-xl font-bold cursor-pointer hover:text-blue-400">
           Messaging App
         </Link>
@@ -650,8 +657,235 @@ export default function MessagingApp() {
           )}
         </aside>
 
+        {/* Mobile sidebar */}
+        {mobileSidebarOpen && (
+          <div className="fixed inset-0 z-50 bg-black bg-opacity-50 md:hidden" onClick={() => setMobileSidebarOpen(false)}>
+            <div
+              className="w-64 h-full bg-gray-800 p-4 overflow-y-auto border-r border-gray-700 space-y-6"
+              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+            >
+              <button
+                className="text-white mb-4"
+                onClick={() => setMobileSidebarOpen(false)}
+              >
+                ✕ Close
+              </button>
+              {user && (
+                <div>
+                  <h2 className="text-lg font-semibold mb-2">Conversations</h2>
+                  <ul className="space-y-2">
+                    {contacts.map(([id, name]) => {
+                      const contactUser = allUsers.find((u) => u.id === id);
+                      return (
+                        <li
+                          key={id}
+                          className={`cursor-pointer flex items-center space-x-2 p-2 rounded-lg ${id === selectedContactId && !selectedGroupId
+                            ? "bg-blue-500 text-white"
+                            : "hover:bg-gray-700"
+                            }`}
+                          onClick={() => {
+                            setSelectedContactId(id);
+                            setSelectedGroupId(null);
+                            setMobileSidebarOpen(false);
+                          }}
+                        >
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={contactUser?.profilePicture && `${host}${contactUser.profilePicture}`} alt={contactUser?.name} />
+                            <AvatarFallback className="text-gray-500">{contactUser?.name[0]}</AvatarFallback>
+                          </Avatar>
+                          <span>{name}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+
+              {user && (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-lg font-semibold">Groups</h2>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsGroupDialogOpen(true)}
+                      className="text-gray-300 hover:text-white items-center"
+                    >
+                      <CirclePlus className="w-48 h-48" />
+                    </Button>
+                  </div>
+                  <ul className="space-y-2">
+                    {groups.map((group) => (
+                      <li
+                        key={group.id}
+                        className={`cursor-pointer flex items-center space-x-2 p-2 rounded-lg ${group.id === selectedGroupId
+                          ? "bg-blue-500 text-white"
+                          : "hover:bg-gray-700"
+                          }`}
+                        onClick={() => {
+                          setSelectedGroupId(group.id);
+                          setSelectedContactId(null);
+                        }}
+                      >
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="text-gray-500">{group.name[0]}</AvatarFallback>
+                        </Avatar>
+                        <span>{group.name}</span>
+                      </li>
+                    ))}
+                    {groups.length === 0 && (
+                      <li className="text-gray-400 text-sm italic p-2">No groups yet</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+
+              <Dialog open={isGroupDialogOpen} onOpenChange={setIsGroupDialogOpen}>
+                <DialogContent className="bg-gray-800 text-white">
+                  <DialogHeader>
+                    <DialogTitle className="mb-2">Create New Group</DialogTitle>
+                  </DialogHeader>
+                  <div >
+                    <div>
+                      <Label htmlFor="group-name" className="text-gray-300 mb-4">Group Name</Label>
+                      <Input
+                        id="group-name"
+                        value={groupName}
+                        onChange={(e) => setGroupName(e.target.value)}
+                        placeholder="Enter group name"
+                        className="bg-gray-700 border-gray-600 text-white mb-4"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-gray-300 mb-4">Select Members</Label>
+                      <ul className="space-y-2 max-h-60 overflow-y-auto">
+                        {allUsers
+                          .filter((u) => u.id !== user?.id)
+                          .map((u) => (
+                            <li
+                              key={u.id}
+                              className={`flex items-center space-x-2 p-2 rounded-lg cursor-pointer ${selectedMembers.includes(u.id) ? "bg-blue-600" : "hover:bg-gray-700"
+                                }`}
+                              onClick={() => {toggleMember(u.id)}}
+                            >
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={`${host}${u.profilePicture}`} alt={u.name} />
+                                <AvatarFallback className="text-gray-500">{u.name?.[0]}</AvatarFallback>
+                              </Avatar>
+                              <span>{u.name}</span>
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsGroupDialogOpen(false)}
+                      className="bg-gray-700 text-white border-gray-600"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={createGroup}
+                      disabled={!groupName || selectedMembers.length === 0}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Create Group
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {user && (
+                <div>
+                  <h2 className="text-lg font-semibold mb-2">Favourites (see if online)</h2>
+                  <ul className="space-y-2">
+                    {allUsers
+                      .filter((u) => favourites[u.id] === true)
+                      .map((u) => (
+                        <li
+                          key={u.id}
+                          className="flex justify-between items-center cursor-pointer hover:bg-gray-700 p-2 rounded-lg"
+                          onClick={() => {
+                            setSelectedContactId(u.id);
+                            setSelectedGroupId(null);
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={`${host}${u.profilePicture}`} alt={u.name} />
+                              <AvatarFallback className="text-gray-500">{u.name?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <span>{u.name}</span>
+                          </div>
+                          <div className="flex justify-end items-center">
+                            {onlineUsers.includes(u.id) && (
+                              <span
+                                className={`w-2.5 h-2.5 rounded-full mr-2 ${onlineUsers.includes(u.id) ? "bg-green-500" : "bg-red-500"}`}
+                              />
+                            )}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleFavourite(u.id);
+                              }}
+                              className="text-red-500 hover:text-red-400"
+                            >
+                              ❤️
+                            </button>
+                          </div>
+                        </li>
+                      ))}
+                    {allUsers.filter((u) => favourites[u.id] === true).length === 0 && (
+                      <li className="text-gray-400 text-sm italic p-2">No favourites yet</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+
+              {user && (
+                <div>
+                  <h2 className="text-lg font-semibold mb-2">All Users</h2>
+                  <ul className="space-y-2">
+                    {allUsers
+                      .filter((u) => u.id !== user.id)
+                      .map((u) => (
+                        <li
+                          key={u.id}
+                          className="flex justify-between items-center cursor-pointer hover:bg-gray-700 p-2 rounded-lg"
+                          onClick={() => {
+                            setSelectedContactId(u.id);
+                            setSelectedGroupId(null);
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={`${host}${u.profilePicture}`} alt={u.name} />
+                              <AvatarFallback className="text-gray-500">{u.name?.[0]}</AvatarFallback>
+                            </Avatar>
+                            <span>{u.name}</span>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleFavourite(u.id);
+                            }}
+                            className={favourites[u.id] ? "text-red-500 hover:text-red-400" : "text-gray-400 hover:text-red-300"}
+                          >
+                            {favourites[u.id] ? "❤️" : "🤍"}
+                          </button>
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              )}        </div>
+          </div>
+        )}
+
+
         {/* Chat area */}
-        <main className="flex flex-col flex-1 p-4">
+        <main className="flex flex-col flex-1 p-4 overflow-y-auto min-h-0">
           {loadingMessages ? (
             <div className="flex flex-col justify-center items-center flex-1">
               <div className="text-gray-400 text-lg animate-pulse mb-8">Loading messages...</div>
@@ -716,7 +950,7 @@ export default function MessagingApp() {
                 </CardContent>
               </Card>
 
-              <div className="flex flex-wrap items-center gap-2 mt-4 p-3 bg-gray-800 rounded-xl shadow-md">
+              <div className="flex items-center gap-2 mt-4 p-3 bg-gray-800 rounded-xl shadow-md overflow-x-auto">
                 <Input
                   type="text"
                   className="flex-grow min-w-[50%] bg-gray-700 border-gray-600 text-white rounded-full px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"

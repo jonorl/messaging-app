@@ -127,7 +127,6 @@ mainRouter.get("/api/v1/users", async (req, res) => {
 
 mainRouter.get("/api/v1/me", authenticateToken, async (req, res) => {
   try {
-    console.log(req.user);
     const user = await db.getMe(req.user);
     res.json({ user });
   } catch (err) {
@@ -187,7 +186,6 @@ mainRouter.put(
 mainRouter.post("/api/v1/heartbeat", authenticateToken, (req, res) => {
   const userId = req.user.userId;
   onlineUsers.set(userId, Date.now());
-  console.log("onlineUsers", onlineUsers);
   res.sendStatus(200);
 });
 
@@ -199,7 +197,6 @@ mainRouter.delete("/api/v1/me", authenticateToken, async (req, res) => {
   try {
     // Block deletion of guest user
     if (req.user.email === "guest@messaging.com") {
-      console.log("denied");
       return res.status(403).json({
         message:
           "The developer has blocked the guest account from being deleted.",
