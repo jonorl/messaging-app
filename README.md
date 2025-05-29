@@ -9,7 +9,7 @@ A messaging application built with **Node.js**, **Express** and **PostgreSQL**. 
 - Secure password handling (hasing + salting)  with bcrypt
 - Timestamps for messages
 - Profile customisation
-- Image attachments
+- Image attachments using [Cloudinary](https://cloudinary.com/)'s hosting
 - Basic group chat functionality
 - Display of online users
 - Real time *simulation* 
@@ -118,7 +118,7 @@ INSERT INTO "User" (
   '8d7118e1-0f6c-466c-9c17-e7c8bc42af8e',
   'robot@messaging.com',
   'Robot',
-  '/assets/shodan.png',
+  'https://res.cloudinary.com/dqqdfeuo1/image/upload/v1748510935/SystemShock2-Shodan_acqa9v.png',
   '$2b$10$9LRDo5nLio4zVN6XTyp4JOrLpU.guTWlW8TEkuVelPK0RN5TtW2jC',
   NOW()
 );
@@ -130,6 +130,9 @@ DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE_NAME"
 JWT_SECRET="yourSecretWord"
 PORT="3000"
 ROBOT="8d7118e1-0f6c-466c-9c17-e7c8bc42af8e"
+CLOUDINARY_CLOUD_NAME=yourCloudName
+CLOUDINARY_API_KEY=yourCloudinaryAPIKey
+CLOUDINARY_API_SECRET=yourCloudinaryAPISecret
 ```
 
 ### .env file (frontend)
@@ -142,10 +145,10 @@ VITE_LOCALHOST=http://localhost:3000
 * Frontend: Netlify --> https://message-app-top.netlify.app/
 * Backend: Render --> https://messaging-app-g6s5.onrender.com/
 * PostgreSql: Neon --> https://neon.tech/
+* Image Hosting: Cloudinary --> https://cloudinary.com/
 
 ## 🧱 To-do
 
-- Image Uploading: Support for uploading and hosting images using services like Cloudinary
 - Group Chat Enhancements: Group titles, admin roles, and better user management
 - Message editing and deletion support
 
