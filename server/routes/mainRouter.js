@@ -7,6 +7,7 @@ const db = require("../db/queries");
 
 // Import Controllers/Middleware
 const multer = require("../controllers/multer");
+const cloudinary = require("../controllers/cloudinary");
 const { validateUser } = require("../controllers/formValidation");
 const { authenticateToken } = require("../controllers/authentication");
 
@@ -14,6 +15,7 @@ const { authenticateToken } = require("../controllers/authentication");
 const { onlineUsers } = require("../utils/onlineUsers");
 const generateGuestCredentials = require("../utils/generateGuestUser");
 const generateRobotReply = require("../utils/robotReply")
+const formatBufferToDataUri = require("../utils/fileUpload")
 
 // Import other helper libs
 const bcrypt = require("bcrypt");
@@ -132,8 +134,15 @@ mainRouter.post(
       const text = req.body.text;
       const receiverId = req.body.receiverId;
 
-      // If a file was uploaded, get its path
-      const imageUrl = req.file ? `/assets/${req.file.filename}` : null;
+      let imageUrl = null;
+
+      if (req.file) {
+        const file = formatBufferToDataUri(req.file);
+        const result = await cloudinary.uploader.upload(file.content, {
+          folder: "messaging-app",
+        });
+        imageUrl = result.secure_url;
+      }
 
       // Save to DB
       const postedMessage = await db.postMessages(
