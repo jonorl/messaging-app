@@ -1,6 +1,6 @@
 // Converts data to Uri
 
-const { DataUriParser } = require("datauri/parser");
+const DataUriParser = require("datauri/parser");
 const path = require("path");
 const parser = new DataUriParser();
 
