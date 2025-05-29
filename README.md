@@ -123,11 +123,17 @@ INSERT INTO "User" (
 
 Client runs at: `http://localhost:5173`
 
-### .env file
+### .env file (backend)
 ```bash
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE_NAME"
-SESSION_SECRET="your_session_secret"
 JWT_SECRET="yourSecretWord"
+PORT="3000"
+ROBOT="8d7118e1-0f6c-466c-9c17-e7c8bc42af8e"
+```
+
+### .env file (frontend)
+```bash
+VITE_LOCALHOST=http://localhost:3000
 ```
 
 🚀 Deployment
