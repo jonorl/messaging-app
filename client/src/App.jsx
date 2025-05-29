@@ -452,7 +452,7 @@ export default function MessagingApp() {
               <Link to="/customise">
                 <Avatar className="h-6 w-6 sm:h-8 sm:w-8 mt-1 flex-shrink-0">
                   <AvatarImage
-                    src={user.profilePicture ? `${host}${user.profilePicture}` : undefined}
+                    src={user.profilePicture ? `${user.profilePicture}` : undefined}
                     alt={user.name}
                   />
                   <AvatarFallback className="text-gray-500">{user.name?.[0]}</AvatarFallback>
@@ -493,7 +493,7 @@ export default function MessagingApp() {
                       }}
                     >
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={contactUser?.profilePicture && `${host}${contactUser.profilePicture}`} alt={contactUser?.name} />
+                        <AvatarImage src={contactUser?.profilePicture && `${contactUser.profilePicture}`} alt={contactUser?.name} />
                         <AvatarFallback className="text-gray-500">{contactUser?.name[0]}</AvatarFallback>
                       </Avatar>
                       <span>{name}</span>
@@ -572,7 +572,7 @@ export default function MessagingApp() {
                           onClick={() => toggleMember(u.id)}
                         >
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={`${host}${u.profilePicture}`} alt={u.name} />
+                            <AvatarImage src={`${u.profilePicture}`} alt={u.name} />
                             <AvatarFallback className="text-gray-500">{u.name?.[0]}</AvatarFallback>
                           </Avatar>
                           <span>{u.name}</span>
@@ -617,7 +617,7 @@ export default function MessagingApp() {
                     >
                       <div className="flex items-center gap-2">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={`${host}${u.profilePicture}`} alt={u.name} />
+                          <AvatarImage src={`${u.profilePicture}`} alt={u.name} />
                           <AvatarFallback className="text-gray-500">{u.name?.[0]}</AvatarFallback>
                         </Avatar>
                         <span>{u.name}</span>
@@ -664,7 +664,7 @@ export default function MessagingApp() {
                     >
                       <div className="flex items-center gap-2">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={`${host}${u.profilePicture}`} alt={u.name} />
+                          <AvatarImage src={`${u.profilePicture}`} alt={u.name} />
                           <AvatarFallback className="text-gray-500">{u.name?.[0]}</AvatarFallback>
                         </Avatar>
                         <span>{u.name}</span>
@@ -718,7 +718,7 @@ export default function MessagingApp() {
                           }}
                         >
                           <Avatar className="h-8 w-8">
-                            <AvatarImage src={contactUser?.profilePicture && `${host}${contactUser.profilePicture}`} alt={contactUser?.name} />
+                            <AvatarImage src={contactUser?.profilePicture && `${contactUser.profilePicture}`} alt={contactUser?.name} />
                             <AvatarFallback className="text-gray-500">{contactUser?.name[0]}</AvatarFallback>
                           </Avatar>
                           <span>{name}</span>
@@ -797,7 +797,7 @@ export default function MessagingApp() {
                               onClick={() => { toggleMember(u.id) }}
                             >
                               <Avatar className="h-8 w-8">
-                                <AvatarImage src={`${host}${u.profilePicture}`} alt={u.name} />
+                                <AvatarImage src={`${u.profilePicture}`} alt={u.name} />
                                 <AvatarFallback className="text-gray-500">{u.name?.[0]}</AvatarFallback>
                               </Avatar>
                               <span>{u.name}</span>
@@ -842,7 +842,7 @@ export default function MessagingApp() {
                         >
                           <div className="flex items-center gap-2">
                             <Avatar className="h-8 w-8">
-                              <AvatarImage src={`${host}${u.profilePicture}`} alt={u.name} />
+                              <AvatarImage src={`${u.profilePicture}`} alt={u.name} />
                               <AvatarFallback className="text-gray-500">{u.name?.[0]}</AvatarFallback>
                             </Avatar>
                             <span>{u.name}</span>
@@ -889,7 +889,7 @@ export default function MessagingApp() {
                         >
                           <div className="flex items-center gap-2">
                             <Avatar className="h-8 w-8">
-                              <AvatarImage src={`${host}${u.profilePicture}`} alt={u.name} />
+                              <AvatarImage src={`${u.profilePicture}`} alt={u.name} />
                               <AvatarFallback className="text-gray-500">{u.name?.[0]}</AvatarFallback>
                             </Avatar>
                             <span>{u.name}</span>
@@ -935,7 +935,7 @@ export default function MessagingApp() {
                         {!isCurrentUser && (
                           <Avatar className="h-8 w-8 mt-1 flex-shrink-0">
                             <AvatarImage
-                              src={senderUser?.profilePicture ? `${host}${senderUser.profilePicture}` : undefined}
+                              src={senderUser?.profilePicture ? `${senderUser.profilePicture}` : undefined}
                               alt={senderUser?.name}
                             />
                             <AvatarFallback className="text-gray-500">{senderUser?.name?.[0]}</AvatarFallback>
@@ -951,7 +951,7 @@ export default function MessagingApp() {
                             {msg.text && <p className="break-words mb-2">{msg.text}</p>}
                             {(msg.image || msg.imageUrl) && (
                               <img
-                                src={`${host}${msg.image || msg.imageUrl}`}
+                                src={`${msg.image || msg.imageUrl}`}
                                 alt="attachment"
                                 className="w-full max-w-xs sm:max-w-sm rounded-md border border-gray-600"
                               />
@@ -966,7 +966,7 @@ export default function MessagingApp() {
                         {isCurrentUser && (
                           <Avatar className="h-8 w-8 mt-1 flex-shrink-0">
                             <AvatarImage
-                              src={user.profilePicture ? `${host}${user.profilePicture}` : undefined}
+                              src={user.profilePicture ? `${user.profilePicture}` : undefined}
                               alt={user.name}
                             />
                             <AvatarFallback className="text-gray-500">{user.name?.[0]}</AvatarFallback>

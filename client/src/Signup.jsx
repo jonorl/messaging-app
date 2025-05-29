@@ -137,7 +137,7 @@ export default function SignupPage() {
               <Link to="/customise">
                 <Avatar className="h-6 w-6 sm:h-8 sm:w-8 mt-1 flex-shrink-0">
                   <AvatarImage
-                    src={user.profilePicture ? `${host}${user.profilePicture}` : undefined}
+                    src={user.profilePicture ? `${user.profilePicture}` : undefined}
                     alt={user.name}
                   />
                   <AvatarFallback className="text-gray-500">{user.name?.[0]}</AvatarFallback>

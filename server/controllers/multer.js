@@ -1,15 +1,15 @@
 // Multer middleware to make it possible to attach files
 
-const multer = require("multer");
-const path = require("path");
+const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('../controllers/cloudinary'); 
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "assets/"); 
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'messaging-app', 
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+    transformation: [{ width: 800, height: 800, crop: 'limit' }],
   },
 });
 
