@@ -1,5 +1,8 @@
+// React import
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+
+// ShadCN/UI components
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label"
@@ -18,23 +21,32 @@ import {
 } from "@/components/ui/alert-dialog"
 
 export default function Customise() {
-    const navigate = useNavigate();
-    const token = localStorage.getItem("token");
+
+    // Hooks
     const [user, setUser] = useState(null);
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [avatarFile, setAvatarFile] = useState(null);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
-    const [loadingUser, setLoadingUser] = useState(true);
-    const [progress, setProgress] = useState(13)
+    const [loadingUser, setLoadingUser] = useState(true); // loader/spinner related
+    const [progress, setProgress] = useState(13); // loader/spinner related
 
+    // to redirect
+    const navigate = useNavigate();
+
+    // fetch JWT token from localstorage
+    const token = localStorage.getItem("token");
+
+    // Fetching the hostname from .env to avoid hardcoding server site
     const host = import.meta.env.VITE_LOCALHOST
 
+    // Progress bar / spinner
     useEffect(() => {
         const timer = setTimeout(() => setProgress(66), 500)
         return () => clearTimeout(timer)
     }, [])
 
+    // Fetch userdata logic
     useEffect(() => {
         async function fetchUser() {
             if (!token) {
@@ -61,6 +73,7 @@ export default function Customise() {
         fetchUser();
     }, [token, host]);
 
+    // Customise user form submit logic
     const handleSubmit = async (e) => {
         e.preventDefault();
         const formData = new FormData();
@@ -84,18 +97,16 @@ export default function Customise() {
         }
     };
 
+    // Logout button simply removes the JWT token
     const logout = () => {
         localStorage.removeItem("token");
         setUser(null);
         navigate("/login");
     };
 
+    // Delete user logic
     const deleteProfile = async () => {
         try {
-            if (user.email === "guest@messaging.com") {
-                alert("The developer has blocked the guest account from being deleted.");
-                return;
-            }
             const res = await fetch(`${host}/api/v1/me/`, {
                 method: "DELETE",
                 headers: {
@@ -111,6 +122,7 @@ export default function Customise() {
         }
     }
 
+    // Triggers guest login, which creates a new generic user
     const handleGuestLogin = async () => {
         try {
             const res = await fetch(`${host}/api/v1/guest/`, {

@@ -1,5 +1,8 @@
+// React import
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+
+// ShadCN/UI components
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,25 +10,34 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress"
 
 export default function SignupPage() {
-  const navigate = useNavigate();
-  const token = localStorage.getItem("token");
+
+  // Hooks
 
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
-  const [progress, setProgress] = useState(13)
   const [user, setUser] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true); // loader/spinner related
+  const [progress, setProgress] = useState(13); // loader/spinner related
 
+  // to redirect
+  const navigate = useNavigate();
+
+  // fetch JWT token from localstorage
+  const token = localStorage.getItem("token");
+
+  // Fetching the hostname from .env to avoid hardcoding server site
   const host = import.meta.env.VITE_LOCALHOST
 
+  // Progress bar / spinner
   useEffect(() => {
     const timer = setTimeout(() => setProgress(66), 500)
     return () => clearTimeout(timer)
   }, [])
 
+  // Fetch userdata logic
   useEffect(() => {
     async function fetchUser() {
       if (!token) {
@@ -48,6 +60,7 @@ export default function SignupPage() {
     fetchUser();
   }, [token, host]);
 
+  // Create new user logic
   const handleSignup = async () => {
     try {
       const response = await fetch(`${host}/api/v1/signup`, {
@@ -69,12 +82,14 @@ export default function SignupPage() {
     }
   };
 
+  // Logout button simply removes the JWT token
   const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
     navigate("/login");
   };
 
+  // Triggers guest login, which creates a new generic user
   const handleGuestLogin = async () => {
     try {
       const res = await fetch(`${host}/api/v1/guest/`, {

@@ -1,6 +1,9 @@
+// React import
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+
+// ShadCN/UI components
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,10 +11,14 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+
+// Lucide React icons
 import { Paperclip, CirclePlus } from "lucide-react";
 
+// Fetching the hostname from .env to avoid hardcoding server site
 const host = import.meta.env.VITE_LOCALHOST;
 
+// Helper function to format time
 function formatDate(dateString) {
   const date = new Date(dateString);
   return new Intl.DateTimeFormat('default', {
@@ -23,6 +30,8 @@ function formatDate(dateString) {
 }
 
 export default function MessagingApp() {
+
+  // Hooks 
   const [newMessage, setNewMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [contacts, setContacts] = useState([]);
@@ -32,19 +41,23 @@ export default function MessagingApp() {
   const [selectedGroupId, setSelectedGroupId] = useState(null);
   const [favourites, setFavourites] = useState({});
   const [user, setUser] = useState(null);
-  const [loadingUser, setLoadingUser] = useState(true);
-  const [loadingMessages, setLoadingMessages] = useState(true);
-  const [progress, setProgress] = useState(13);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [imageFile, setImageFile] = useState(null);
   const [isGroupDialogOpen, setIsGroupDialogOpen] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [selectedMembers, setSelectedMembers] = useState([]);
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false); // open/close sidebar on mobile phones
+  const [progress, setProgress] = useState(13); // loader/spinner related
+  const [loadingUser, setLoadingUser] = useState(true); // loader/spinner related
+  const [loadingMessages, setLoadingMessages] = useState(true); // loader/spinner related
   const messagesRef = useRef(messages);
   const lastMessageRef = useRef(null);
   const chatContainerRef = useRef(null);
+
+  // to redirect
   const navigate = useNavigate();
+
+  // fetch JWT token from localstorage
   const token = localStorage.getItem("token");
 
   // Auto-scroll to the last message or bottom of container
@@ -60,12 +73,13 @@ export default function MessagingApp() {
     return () => clearTimeout(timer);
   }, [messages, selectedContactId, selectedGroupId]);
 
+  // Progress bar / spinner
   useEffect(() => {
     const timer = setTimeout(() => setProgress(66), 500);
     return () => clearTimeout(timer);
   }, []);
 
-  // Tell backend I'm online
+  // Fetch online users
   useEffect(() => {
     if (!token || !user) return;
 
@@ -86,6 +100,7 @@ export default function MessagingApp() {
     return () => clearInterval(interval);
   }, [token, user]);
 
+  // Tell backend I'm online
   useEffect(() => {
     if (!token || !user) return;
 
@@ -164,6 +179,7 @@ export default function MessagingApp() {
           setMessages(allMessages);
           messagesRef.current = allMessages;
 
+          // Using a Map object to keep insertion order instead of array
           const contactMap = new Map();
           messagesData.messages.forEach((msg) => {
             const otherId = msg.senderId === user.id ? msg.receiverId : msg.senderId;
@@ -240,6 +256,8 @@ export default function MessagingApp() {
     fetchUsers();
   }, [token]);
 
+  // Message sending logic here
+
   const sendMessage = async () => {
     if (newMessage.trim() === "" && !imageFile) return;
 
@@ -277,6 +295,7 @@ export default function MessagingApp() {
     setNewMessage("");
     setImageFile(null);
 
+    // Logic to send message to group, otherwise to individual
     try {
       const endpoint = selectedGroupId
         ? `${host}/api/v1/groups/${selectedGroupId}/messages`
@@ -296,6 +315,7 @@ export default function MessagingApp() {
     }
   };
 
+  // Logic about creating a group
   const createGroup = async () => {
     if (!groupName || selectedMembers.length === 0) return;
 
@@ -326,6 +346,7 @@ export default function MessagingApp() {
     }
   };
 
+  // Logic when adding members to a group
   const toggleMember = (userId) => {
     setSelectedMembers((prev) =>
       prev.includes(userId)
@@ -341,12 +362,14 @@ export default function MessagingApp() {
       (msg.receiverId === user?.id && msg.senderId === selectedContactId)
   );
 
+  // Logout button simply removes the JWT token
   const logout = () => {
     localStorage.removeItem("token");
     setUser(null);
     navigate("/login");
   };
 
+  // Favourite logic
   const toggleFavourite = async (userId) => {
     setFavourites((prev) => ({
       ...prev,
@@ -375,6 +398,7 @@ export default function MessagingApp() {
     }
   };
 
+  // Triggers guest login, which creates a new generic user
   const handleGuestLogin = async () => {
     try {
       const res = await fetch(`${host}/api/v1/guest/`, {
@@ -666,7 +690,7 @@ export default function MessagingApp() {
           <div className="fixed inset-0 z-50 bg-black bg-opacity-50 md:hidden" onClick={() => setMobileSidebarOpen(false)}>
             <div
               className="w-64 h-full bg-gray-800 p-4 overflow-y-auto border-r border-gray-700 space-y-6"
-              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+              onClick={(e) => e.stopPropagation()}
             >
               <button
                 className="text-white mb-4"

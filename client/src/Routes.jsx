@@ -2,7 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import App from "./App";
 import Login from "./LoginPage"
 import Signup from "./Signup"
-import Customise from "./Cusomise"
+import Customise from "./Customise"
 
 const router = createBrowserRouter([
     {
