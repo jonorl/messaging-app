@@ -147,6 +147,10 @@ VITE_LOCALHOST=http://localhost:3000
 * PostgreSql: Neon --> https://neon.tech/
 * Image Hosting: Cloudinary --> https://cloudinary.com/
 
+* [live version](https://message-app-top.netlify.app/)
+
+![Blog App Screenshot](https://res.cloudinary.com/dqqdfeuo1/image/upload/v1748856809/646dab32-34ff-44e4-9c86-d7b76cf7ed87.png "Screenshot of my Blog Application")
+
 ## 🧱 To-do
 
 - Group Chat Enhancements: Group titles, admin roles, and better user management
