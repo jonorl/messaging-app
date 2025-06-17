@@ -1,7 +1,6 @@
 // React import
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 // ShadCN/UI components
 import { Input } from "@/components/ui/input";
