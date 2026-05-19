@@ -98,9 +98,9 @@ async function toggleFavourite(userId, favouriteId) {
   const existing = await prisma.favourite.findUnique({
     where: {
       userId_favouriteId: {
-        userId,
-        favouriteId,
-      },
+        userId: userId,
+        favouriteId: favouriteId 
+      }
     },
   });
 

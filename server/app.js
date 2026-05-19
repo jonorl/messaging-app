@@ -22,7 +22,9 @@ startOnlineUsersCleanup();
 const mainRouter = require("./routes/mainRouter");
 app.use("/", mainRouter);
 
+PORT = process.env.PORT || 8081
+
 // Launch and port confirmation
-app.listen(process.env.PORT, () =>
-  console.log(`Listeining on port ${process.env.PORT}`)
+app.listen(PORT, () =>
+  console.log(`Listeining on port ${PORT}`)
 );
