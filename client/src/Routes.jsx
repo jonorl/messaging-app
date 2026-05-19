@@ -4,6 +4,9 @@ import Login from "./LoginPage"
 import Signup from "./Signup"
 import Customise from "./Customise"
 
+const hasSubfolder = window.location.pathname.startsWith("/messaging-app");
+const basename = hasSubfolder ? "/messaging-app" : "/";
+
 const router = createBrowserRouter([
     {
         path: "/",
@@ -21,6 +24,6 @@ const router = createBrowserRouter([
         path: "/customise/",
         element: < Customise />
     } 
-]);
+], { basename });
 
 export default router;
