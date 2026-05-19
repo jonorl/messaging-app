@@ -8,7 +8,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  base: '/messaging-app/',
+  base: './',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
