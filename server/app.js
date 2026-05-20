@@ -25,6 +25,6 @@ app.use("/", mainRouter);
 const PORT_MESSAGING = process.env.PORT_MESSAGING || 8081
 
 // Launch and port confirmation
-app.listen(PORT_MESSAGING, () =>
-  console.log(`Listeining on port ${PORT_MESSAGING}`)
-);
+app.listen(PORT_MESSAGING, () => {
+  console.log(`Listening on port ${PORT_MESSAGING}`);
+});
