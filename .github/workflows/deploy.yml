@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'backend/**' #UPDATE
+      - 'server/**' #UPDATE
       - 'Dockerfile'
       - '.github/workflows/**'
   workflow_dispatch:
@@ -34,7 +34,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./backend/ # UPDATE
+          context: ./server/ # UPDATE
           push: true
           tags: ghcr.io/jonorl/messaging-app:latest # UPDATE
           cache-from: type=gha
